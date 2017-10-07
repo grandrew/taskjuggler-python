@@ -1,0 +1,13 @@
+site_name: taskjuggler_python
+site_description: Python interfaces to TaskJuggler 3 planner
+site_author: Andrew Gryaznov
+repo_url: https://github.com/grandrew/taskjuggler-python
+
+theme: readthedocs
+
+pages:
+- Home: index.md
+- About:
+  - Release Notes: about/changelog.md
+  - Contributing: about/contributing.md
+  - License: about/license.md
