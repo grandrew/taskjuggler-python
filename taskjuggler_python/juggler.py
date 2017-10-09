@@ -1,23 +1,15 @@
 #! /usr/bin/python3
 
 """
-Jira to task-juggler extraction script
+generic to task-juggler extraction script
 
-This script queries Jira, and generates a task-juggler input file in order to generate a gant-chart.
+This script queries generic, and generates a task-juggler input file in order to generate a gant-chart.
 """
 
-from getpass import getpass
-import argparse
-import logging
-from jira import JIRA, JIRAError
+import logging,tempfile,subprocess
 
 DEFAULT_LOGLEVEL = 'warning'
-DEFAULT_JIRA_URL = 'https://jira.melexis.com/jira'
-DEFAULT_JIRA_USER = 'swcc'
-DEFAULT_JIRA_QUERY = 'project = X AND fixVersion = Y'
-DEFAULT_OUTPUT = 'jira_export.tjp'
-
-JIRA_PAGE_SIZE = 50
+DEFAULT_OUTPUT = 'export.tjp'
 
 TAB = ' ' * 4
 
@@ -56,26 +48,26 @@ class JugglerTaskProperty(object):
     VALUE_TEMPLATE = '{prefix}{value}{suffix}'
 
 
-    def __init__(self, jira_issue=None):
+    def __init__(self, issue=None):
         '''
         Initialize task juggler property
 
         Args:
-            jira_issue (class): The Jira issue to load from
+            issue (class): The generic issue to load from
             value (object): Value of the property
         '''
         self.name = self.DEFAULT_NAME
         self.set_value(self.DEFAULT_VALUE)
 
-        if jira_issue:
-            self.load_from_jira_issue(jira_issue)
+        if issue:
+            self.load_from_issue(issue)
 
-    def load_from_jira_issue(self, jira_issue):
+    def load_from_issue(self, issue):
         '''
-        Load the object with data from a Jira issue
+        Load the object with data from a generic issue
 
         Args:
-            jira_issue (class): The Jira issue to load from
+            issue (class): The generic issue to load from
         '''
         pass
 
@@ -141,27 +133,30 @@ class JugglerTaskProperty(object):
                                                                          suffix=self.SUFFIX))
         return ''
 
+
+    
+
 class JugglerTaskAllocate(JugglerTaskProperty):
     '''Class for the allocate (assignee) of a juggler task'''
 
     DEFAULT_NAME = 'allocate'
     DEFAULT_VALUE = 'not assigned'
 
-    def load_from_jira_issue(self, jira_issue):
+    def load_from_issue(self, issue):
         '''
-        Load the object with data from a Jira issue
+        Load the object with data from a generic issue
 
         Args:
-            jira_issue (class): The Jira issue to load from
+            issue (class): The generic issue to load from
         '''
         self.set_value(self.DEFAULT_VALUE)
-        if hasattr(jira_issue.fields, 'assignee'):
-            self.set_value(jira_issue.fields.assignee.name)
+        if hasattr(issue.fields, 'assignee'):
+            self.set_value(issue.fields.assignee.name)
 
 class JugglerTaskEffort(JugglerTaskProperty):
     '''Class for the effort (estimate) of a juggler task'''
 
-    #For converting the seconds (Jira) to days
+    #For converting the seconds (generic) to days
     UNIT = 'd'
     FACTOR = 8.0 * 60 * 60
 
@@ -170,19 +165,19 @@ class JugglerTaskEffort(JugglerTaskProperty):
     DEFAULT_VALUE = MINIMAL_VALUE
     SUFFIX = UNIT
 
-    def load_from_jira_issue(self, jira_issue):
+    def load_from_issue(self, issue):
         '''
-        Load the object with data from a Jira issue
+        Load the object with data from a generic issue
 
         Args:
-            jira_issue (class): The Jira issue to load from
+            issue (class): The generic issue to load from
         '''
         self.set_value(self.DEFAULT_VALUE)
-        if hasattr(jira_issue.fields, 'aggregatetimeoriginalestimate') and jira_issue.fields.aggregatetimeoriginalestimate:
-            val = jira_issue.fields.aggregatetimeoriginalestimate
+        if hasattr(issue.fields, 'aggregatetimeoriginalestimate') and issue.fields.aggregatetimeoriginalestimate:
+            val = issue.fields.aggregatetimeoriginalestimate
             self.set_value(val / self.FACTOR)
         else:
-            logging.warning('No estimate found for %s, assuming %s%s', jira_issue.key, self.DEFAULT_VALUE, self.UNIT)
+            logging.warning('No estimate found for %s, assuming %s%s', issue.key, self.DEFAULT_VALUE, self.UNIT)
 
     def validate(self, task, tasks):
         '''
@@ -213,16 +208,16 @@ class JugglerTaskDepends(JugglerTaskProperty):
         '''
         self.value = list(value)
 
-    def load_from_jira_issue(self, jira_issue):
+    def load_from_issue(self, issue):
         '''
-        Load the object with data from a Jira issue
+        Load the object with data from a generic issue
 
         Args:
-            jira_issue (class): The Jira issue to load from
+            issue (class): The generic issue to load from
         '''
         self.set_value(self.DEFAULT_VALUE)
-        if hasattr(jira_issue.fields, 'issuelinks'):
-            for link in jira_issue.fields.issuelinks:
+        if hasattr(issue.fields, 'issuelinks'):
+            for link in issue.fields.issuelinks:
                 if hasattr(link, 'inwardIssue') and link.type.name == 'Blocker':
                     self.append_value(to_identifier(link.inwardIssue.key))
 
@@ -260,40 +255,107 @@ class JugglerTaskDepends(JugglerTaskProperty):
                                         value=valstr)
         return ''
 
-class JugglerTask(object):
+class JugglerCompoundKeyword(object):
+
+    '''Class for a general compound object in TJ syntax'''
+
+    LOG_STRING = "DefaultKeyword"
+    DEFAULT_KEYWORD = 'unknown_keyword'
+    DEFAULT_ID = "" # ID may be empty for some keywords
+    DEFAULT_SUMMARY = '' # no summary is possible everywhere
+    TEMPLATE = '''\n{keyword} {id}'''
+
+    def __init__(self, issue=None):
+        logging.info('Create %s', self.LOG_STRING)
+
+        self.keyword = self.DEFAULT_KEYWORD
+        self.ID = self.DEFAULT_ID
+        self.summary = self.DEFAULT_SUMMARY
+        self.properties = {}
+        self.load_default_properties()
+
+        if issue:
+            self.load_from_issue(issue)
+        
+        self.process_values()
+            
+    def load_from_issue(self, issue):
+        '''
+        Load the object with data from a generic issue
+
+        Args:
+            issue (class): The generic issue to load from
+        '''
+        pass
+    
+    def load_default_properties(self):
+        pass
+    
+    def process_values(self):
+        pass
+
+    def append_property(self, prop):
+        self.properties[prop.get_name()] = prop
+    
+    def __str__(self):
+        out = self.TEMPLATE.format(keyword=self.keyword, id=self.ID)
+        if self.summary:
+            out += ' "%s"' % self.summary.replace('\"', '\\\"')
+        if self.properties: out += " {\n"
+        for prop in self.properties:
+            out += str(self.properties[prop])
+        if self.properties: out += "\n}"
+        return out
+
+class JugglerSimpleProperty(JugglerCompoundKeyword):
+    DEFAULT_NAME = 'unknown_property'
+    DEFAULT_VALUE = ''
+    
+    def load_default_properties(self):
+        self.keyword = self.DEFAULT_NAME
+        self.set_value(self.DEFAULT_VALUE)
+    
+    def load_from_issue(self, value):
+        self.set_value(value)
+        
+    def get_name(self):
+        return self.keyword
+    
+    def get_value(self):
+        return self.ID
+    
+    def set_value(self, val):
+        if val or val == 0: self.ID = repr(val).replace("'",'"')
+    
+class JugglerTimezone(JugglerSimpleProperty):
+    DEFAULT_NAME = 'timezone'
+    DEFAULT_VALUE = 'Europe/Dublin'
+    
+
+class JugglerOutputdir(JugglerSimpleProperty):
+    DEFAULT_NAME = 'outputdir'
+    DEFAULT_VALUE = 'REPORT'
+
+class JugglerTask(JugglerCompoundKeyword):
 
     '''Class for a task for Task-Juggler'''
 
+    LOG_STRING = "JugglerTask"
     DEFAULT_KEY = 'NOT_INITIALIZED'
     DEFAULT_SUMMARY = 'Task is not initialized'
-    TEMPLATE = '''
-task {id} "{key}: {description}" {{
-{props}
-}}
-'''
 
-    def __init__(self, jira_issue=None):
-        logging.info('Create JugglerTask for %s', jira_issue.key)
-
-        self.key = self.DEFAULT_KEY
-        self.summary = self.DEFAULT_SUMMARY
-        self.properties = {}
-
-        if jira_issue:
-            self.load_from_jira_issue(jira_issue)
-
-    def load_from_jira_issue(self, jira_issue):
+    def load_from_issue(self, issue):
         '''
-        Load the object with data from a Jira issue
+        Load the object with data from a generic issue
 
         Args:
-            jira_issue (class): The Jira issue to load from
+            issue (class): The generic issue to load from
         '''
-        self.key = jira_issue.key
-        self.summary = jira_issue.fields.summary.replace('\"', '\\\"')
-        self.properties['allocate'] = JugglerTaskAllocate(jira_issue)
-        self.properties['effort'] = JugglerTaskEffort(jira_issue)
-        self.properties['depends'] = JugglerTaskDepends(jira_issue)
+        self.key = issue.key
+        self.summary = issue.fields.summary.replace('\"', '\\\"')
+        self.properties['allocate'] = JugglerTaskAllocate(issue)
+        self.properties['effort'] = JugglerTaskEffort(issue)
+        self.properties['depends'] = JugglerTaskDepends(issue)
 
     def validate(self, tasks):
         '''
@@ -324,32 +386,86 @@ task {id} "{key}: {description}" {{
                                     description=self.summary.replace('\"', '\\\"'),
                                     props=props)
 
-class JiraJuggler(object):
+class JugglerTimesheet():
+    pass
 
-    '''Class for task-juggling Jira results'''
+class JugglerBooking(JugglerTaskProperty):
+    pass
 
-    def __init__(self, url, user, passwd, query):
+class JugglerProject(JugglerCompoundKeyword):
+    
+    '''Template for TaskJuggler project'''
+    
+    LOG_STRING = "JugglerProject"
+    DEFAULT_KEYWORD = 'project'
+    DEFAULT_ID = "default" # ID may be empty for some keywords
+    DEFAULT_SUMMARY = '' # no summary is possible everywhere
+    
+    def load_default_properties(self):
+        self.append_property(JugglerTimezone())
+        self.append_property(JugglerOutputdir())
+
+class JugglerSource(object):
+    """
+    The entire project skeleton
+    
+    Sets reports and folders for use with parser
+    """
+    
+    DEFAULT_KEY = 'NOT_INITIALIZED'
+    DEFAULT_SUMMARY = 'Project is not initialized'
+    TEMPLATE = '''
+    // TaskJuggler 3 source
+    // generated by python-juggler (c) 2017 Andrew Gryaznov
+    // https://github.com/grandrew/taskjuggler-python
+    
+    {project}
+    
+    {tasks}
+    
+    icalreport "Calendar"
+    
+'''
+    def __init__(self):
+        logging.info('Create JugglerSource')
+
+        self.key = self.DEFAULT_KEY
+        self.summary = self.DEFAULT_SUMMARY
+        self.tasks = {}
+        self.project = JugglerProject()
+    
+    def __str__(self):
         '''
-        Construct a JIRA juggler object
+        Convert source object to the task juggler syntax
+
+        Returns:
+            str: String representation of the task in juggler syntax
+        '''
+        tasks = ''
+        for task in self.tasks:
+            tasks += str(self.tasks[task])
+        return self.TEMPLATE.format(tasks=tasks,project=str(self.project))
+
+class GenericJuggler(object):
+
+    '''Class for task-juggling generic results'''
+
+    def __init__(self):
+        '''
+        Construct a generic juggler object
 
         Args:
-            url (str): URL to the JIRA server
-            user (str): Username on JIRA server
-            passwd (str): Password of username on JIRA server
-            query (str): The Query to run on JIRA server
+            none
         '''
 
-        logging.info('Jira server: %s', url)
-
-        self.jirahandle = JIRA(url, basic_auth=(user, passwd))
-        self.set_query(query)
+        logging.info('generic load')
 
     def set_query(self, query):
         '''
-        Set the query for the JIRA juggler object
+        Set the query for the generic juggler object
 
         Args:
-            query (str): The Query to run on JIRA server
+            query (str): The Query to run on generic server
         '''
 
         logging.info('Query: %s', query)
@@ -367,20 +483,27 @@ class JiraJuggler(object):
         for task in tasks:
             task.validate(tasks)
 
-    def load_issues_from_jira(self):
+    def load_issues(self):
+        raise NotImplementedError
+
+    def load_issues_from_generic(self):
         '''
-        Load issues from Jira
+        Load issues from generic
 
         Returns:
-            list: A list of dicts containing the Jira tickets
+            list: A list of dicts containing the generic tickets
         '''
         tasks = []
         busy = True
         while busy:
             try:
-                issues = self.jirahandle.search_issues(self.query, maxResults=JIRA_PAGE_SIZE, startAt=self.issue_count)
-            except JIRAError:
-                logging.error('Invalid Jira query "%s"', self.query)
+                issues = self.load_issues()
+            except NotImplementedError:
+                logging.error('Loading Issues is not implemented in upstream library')
+                return None
+                
+            except:
+                logging.error('Could not get issue')
                 return None
 
             if len(issues) <= 0:
@@ -396,14 +519,20 @@ class JiraJuggler(object):
 
         return tasks
 
-    def juggle(self, output=None):
+    def write_file(self, output=None, reportfolder=None):
         '''
-        Query JIRA and generate task-juggler output from given issues
+        Query generic and generate task-juggler output from given issues
 
         Args:
             output (str): Name of output file, for task-juggler
         '''
-        issues = self.load_issues_from_jira()
+        if output is None:
+            output = tempfile.mkstemp()
+        self.infile = output
+        
+        # TODO HERE: set report folder!
+        
+        issues = self.load_issues_from_generic()
         if not issues:
             return None
         if output:
@@ -411,30 +540,41 @@ class JiraJuggler(object):
                 for issue in issues:
                     out.write(str(issue))
         return issues
+        
+    def run(self, outfolder=None, infile=None):
+        '''
+        Run the taskjuggler task
 
-if __name__ == "__main__":
-    ARGPARSER = argparse.ArgumentParser()
-    ARGPARSER.add_argument('-l', '--loglevel', dest='loglevel', default=DEFAULT_LOGLEVEL,
-                           action='store', required=False,
-                           help='Level for logging (strings from logging python package)')
-    ARGPARSER.add_argument('-j', '--jira', dest='url', default=DEFAULT_JIRA_URL,
-                           action='store', required=False,
-                           help='URL to JIRA server')
-    ARGPARSER.add_argument('-u', '--username', dest='username', default=DEFAULT_JIRA_USER,
-                           action='store', required=True,
-                           help='Your username on JIRA server')
-    ARGPARSER.add_argument('-q', '--query', dest='query', default=DEFAULT_JIRA_QUERY,
-                           action='store', required=True,
-                           help='Query to perform on JIRA server')
-    ARGPARSER.add_argument('-o', '--output', dest='output', default=DEFAULT_OUTPUT,
-                           action='store', required=False,
-                           help='Output .tjp file for task-juggler')
-    ARGS = ARGPARSER.parse_args()
+        Args:
+            output (str): Name of output file, for task-juggler
+        '''
+        if outfolder is None:
+            outfolder = tempfile.mkdtemp()
+        self.outfolder = outfolder
+        if infile is None:
+            infile = self.infile
+        subprocess.call(["/usr/bin/env", "tj3", self.infile])
+        
+    def juggle(self):
+        '''
+        Run the juggler with default settings
 
-    set_logging_level(ARGS.loglevel)
+        Args:
+            output (str): Name of output file, for task-juggler
+            
+        Returns:
+            str: taskjuggler output folder location
+        '''
+        self.load_issues_from_generic()
+        self.write_file()
+        self.run()
+        return self.outfolder
+        
+    def clean(self):
+        "clean after running"
+        raise NotImplementedError
+    
+    def __del__(self):
+        self.clean()
 
-    PASSWORD = getpass('Enter JIRA password for {user}: '.format(user=ARGS.username))
 
-    JUGGLER = JiraJuggler(ARGS.url, ARGS.username, PASSWORD, ARGS.query)
-
-    JUGGLER.juggle(ARGS.output)

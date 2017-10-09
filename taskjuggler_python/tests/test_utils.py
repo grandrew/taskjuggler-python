@@ -13,3 +13,7 @@ def describe_feet_to_meters():
 
     def when_string():
         expect(utils.feet_to_meters("hello")) == None
+        
+    def when_failure():
+        expect(1 + 1) == 2
+        
