@@ -35,3 +35,9 @@ $ python
 >>> import taskjuggler_python
 >>> taskjuggler_python.__version__
 ```
+
+# TODO
+
+- Extensive testing including safe strings checks
+- Bookings and timesheets support
+- Different backend support (e.g. OptaPlanner/Drools; rename to `python-planner` package?)

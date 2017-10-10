@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#! /usr/bin/python
 
 """
 generic to task-juggler extraction script
@@ -12,6 +12,13 @@ DEFAULT_LOGLEVEL = 'warning'
 DEFAULT_OUTPUT = 'export.tjp'
 
 TAB = ' ' * 4
+
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        return False
 
 def set_logging_level(loglevel):
     '''
@@ -35,6 +42,8 @@ def to_identifier(key):
     Returns:
         str: Valid task-identifier based on given key
     '''
+    if is_number(key):
+        key = "id"+key
     return key.replace('-', '_')
 
 class JugglerTaskProperty(object):
@@ -58,9 +67,15 @@ class JugglerTaskProperty(object):
         '''
         self.name = self.DEFAULT_NAME
         self.set_value(self.DEFAULT_VALUE)
+        self.empty = False
+        self.load_default_properties(issue)
 
         if issue:
-            self.load_from_issue(issue)
+            if self.load_from_issue(issue) is False:
+                self.empty = True
+
+    def load_default_properties(self, issue = None):
+        pass
 
     def load_from_issue(self, issue):
         '''
@@ -105,6 +120,7 @@ class JugglerTaskProperty(object):
         Returns:
             str: Value of the task juggler property
         '''
+        if self.value == self.DEFAULT_VALUE: return ""
         return self.value
 
     def validate(self, task, tasks):
@@ -132,9 +148,6 @@ class JugglerTaskProperty(object):
                                                                          value=self.get_value(),
                                                                          suffix=self.SUFFIX))
         return ''
-
-
-    
 
 class JugglerTaskAllocate(JugglerTaskProperty):
     '''Class for the allocate (assignee) of a juggler task'''
@@ -164,6 +177,9 @@ class JugglerTaskEffort(JugglerTaskProperty):
     MINIMAL_VALUE = 1.0 / 8
     DEFAULT_VALUE = MINIMAL_VALUE
     SUFFIX = UNIT
+
+    def load_default_properties(self, issue = None):
+        self.SUFFIX = self.UNIT
 
     def load_from_issue(self, issue):
         '''
@@ -255,30 +271,38 @@ class JugglerTaskDepends(JugglerTaskProperty):
                                         value=valstr)
         return ''
 
+# class NonEmptyObject(object):
+#     def __init__(self):
+#         self.empty = False
+#     def __bool__(self):
+#         return not self.empty
+#     __nonzero__=__bool__
+    
+
 class JugglerCompoundKeyword(object):
 
     '''Class for a general compound object in TJ syntax'''
 
+    COMMENTS_HEADER = ""
     LOG_STRING = "DefaultKeyword"
     DEFAULT_KEYWORD = 'unknown_keyword'
-    DEFAULT_ID = "" # ID may be empty for some keywords
+    DEFAULT_ID = "" # id may be empty for some keywords
     DEFAULT_SUMMARY = '' # no summary is possible everywhere
-    TEMPLATE = '''\n{keyword} {id}'''
+    TEMPLATE = '''{header}\n{keyword} {id}'''
 
     def __init__(self, issue=None):
         logging.info('Create %s', self.LOG_STRING)
-
+        self.empty = False
         self.keyword = self.DEFAULT_KEYWORD
-        self.ID = self.DEFAULT_ID
+        self.id = self.DEFAULT_ID
         self.summary = self.DEFAULT_SUMMARY
         self.properties = {}
-        self.load_default_properties()
+        self.load_default_properties(issue)
 
         if issue:
-            self.load_from_issue(issue)
-        
-        self.process_values()
-            
+            if self.load_from_issue(issue) is False:
+                self.empty = True
+    
     def load_from_issue(self, issue):
         '''
         Load the object with data from a generic issue
@@ -288,17 +312,23 @@ class JugglerCompoundKeyword(object):
         '''
         pass
     
-    def load_default_properties(self):
+    def load_default_properties(self, issue = None):
         pass
     
-    def process_values(self):
-        pass
+    def get_name(self):
+        return self.keyword
+        
+    def get_id(self):
+        return self.id
 
-    def append_property(self, prop):
-        self.properties[prop.get_name()] = prop
+    def set_property(self, prop):
+        if prop: self.properties[prop.get_name() + prop.get_id()] = prop
+    
+    def set_id(self, id):
+        self.id = to_identifier(id)
     
     def __str__(self):
-        out = self.TEMPLATE.format(keyword=self.keyword, id=self.ID)
+        out = self.TEMPLATE.format(header=self.COMMENTS_HEADER,keyword=self.keyword, id=self.id)
         if self.summary:
             out += ' "%s"' % self.summary.replace('\"', '\\\"')
         if self.properties: out += " {\n"
@@ -311,7 +341,7 @@ class JugglerSimpleProperty(JugglerCompoundKeyword):
     DEFAULT_NAME = 'unknown_property'
     DEFAULT_VALUE = ''
     
-    def load_default_properties(self):
+    def load_default_properties(self, issue = None):
         self.keyword = self.DEFAULT_NAME
         self.set_value(self.DEFAULT_VALUE)
     
@@ -322,41 +352,47 @@ class JugglerSimpleProperty(JugglerCompoundKeyword):
         return self.keyword
     
     def get_value(self):
-        return self.ID
+        return self.id
     
     def set_value(self, val):
-        if val or val == 0: self.ID = repr(val).replace("'",'"')
+        if val or val == 0: self.id = repr(val).replace("'",'"')
     
 class JugglerTimezone(JugglerSimpleProperty):
     DEFAULT_NAME = 'timezone'
     DEFAULT_VALUE = 'Europe/Dublin'
-    
 
 class JugglerOutputdir(JugglerSimpleProperty):
     DEFAULT_NAME = 'outputdir'
     DEFAULT_VALUE = 'REPORT'
 
+class JugglerIcalreport(JugglerSimpleProperty):
+    DEFAULT_NAME = 'icalreport'
+    DEFAULT_VALUE = 'calendar'
+    
 class JugglerTask(JugglerCompoundKeyword):
 
     '''Class for a task for Task-Juggler'''
 
     LOG_STRING = "JugglerTask"
-    DEFAULT_KEY = 'NOT_INITIALIZED'
+    DEFAULT_KEYWORD = 'task'
+    DEFAULT_ID = "unknown_task"
     DEFAULT_SUMMARY = 'Task is not initialized'
+    
+    # def load_default_properties(self, issue):
+    #     self.set_property(JugglerTaskAllocate(issue))
+    #     self.set_property(JugglerTaskEffort(issue))
+    #     self.set_property(JugglerTaskDepends(issue))
+        
+    # def load_from_issue(self, issue):
+    #     '''
+    #     Load the object with data from a generic issue
 
-    def load_from_issue(self, issue):
-        '''
-        Load the object with data from a generic issue
-
-        Args:
-            issue (class): The generic issue to load from
-        '''
-        self.key = issue.key
-        self.summary = issue.fields.summary.replace('\"', '\\\"')
-        self.properties['allocate'] = JugglerTaskAllocate(issue)
-        self.properties['effort'] = JugglerTaskEffort(issue)
-        self.properties['depends'] = JugglerTaskDepends(issue)
-
+    #     Args:
+    #         issue (?): The generic issue to load from
+    #     '''
+    #     self.id = hash(issue)
+    #     self.load_default_properties(issue)
+    
     def validate(self, tasks):
         '''
         Validate (and correct) the current task
@@ -365,26 +401,26 @@ class JugglerTask(JugglerCompoundKeyword):
             tasks (list): List of JugglerTask's to which the current task belongs. Will be used to
                           verify relations to other tasks.
         '''
-        if self.key == self.DEFAULT_KEY:
+        if self.id == self.DEFAULT_ID:
             logging.error('Found a task which is not initialized')
 
         for prop in self.properties:
             self.properties[prop].validate(self, tasks)
 
-    def __str__(self):
-        '''
-        Convert task object to the task juggler syntax
+    # def __str__(self):
+    #     '''
+    #     Convert task object to the task juggler syntax
 
-        Returns:
-            str: String representation of the task in juggler syntax
-        '''
-        props = ''
-        for prop in self.properties:
-            props += str(self.properties[prop])
-        return self.TEMPLATE.format(id=to_identifier(self.key),
-                                    key=self.key,
-                                    description=self.summary.replace('\"', '\\\"'),
-                                    props=props)
+    #     Returns:
+    #         str: String representation of the task in juggler syntax
+    #     '''
+    #     props = ''
+    #     for prop in self.properties:
+    #         props += str(self.properties[prop])
+    #     return self.TEMPLATE.format(id=to_identifier(self.key),
+    #                                 key=self.key,
+    #                                 description=self.summary.replace('\"', '\\\"'),
+    #                                 props=props)
 
 class JugglerTimesheet():
     pass
@@ -398,58 +434,39 @@ class JugglerProject(JugglerCompoundKeyword):
     
     LOG_STRING = "JugglerProject"
     DEFAULT_KEYWORD = 'project'
-    DEFAULT_ID = "default" # ID may be empty for some keywords
+    DEFAULT_ID = "default" # id may be empty for some keywords
     DEFAULT_SUMMARY = '' # no summary is possible everywhere
     
     def load_default_properties(self):
-        self.append_property(JugglerTimezone())
-        self.append_property(JugglerOutputdir())
+        self.set_property(JugglerTimezone())
+        self.set_property(JugglerOutputdir())
 
-class JugglerSource(object):
+class JugglerSource(JugglerCompoundKeyword):
     """
     The entire project skeleton
     
     Sets reports and folders for use with parser
+    
+    Must be extended with load_from_issue(self,issue) appending tasks 
     """
     
-    DEFAULT_KEY = 'NOT_INITIALIZED'
-    DEFAULT_SUMMARY = 'Project is not initialized'
-    TEMPLATE = '''
+    LOG_STRING = "JugglerSource"
+    DEFAULT_KEYWORD = ''
+    DEFAULT_ID = ''
+    COMMENTS_HEADER = '''
     // TaskJuggler 3 source
-    // generated by python-juggler (c) 2017 Andrew Gryaznov
+    // generated by python-juggler (c) 2017 Andrew Gryaznov and others
     // https://github.com/grandrew/taskjuggler-python
+    '''
     
-    {project}
-    
-    {tasks}
-    
-    icalreport "Calendar"
-    
-'''
-    def __init__(self):
-        logging.info('Create JugglerSource')
-
-        self.key = self.DEFAULT_KEY
-        self.summary = self.DEFAULT_SUMMARY
-        self.tasks = {}
-        self.project = JugglerProject()
-    
-    def __str__(self):
-        '''
-        Convert source object to the task juggler syntax
-
-        Returns:
-            str: String representation of the task in juggler syntax
-        '''
-        tasks = ''
-        for task in self.tasks:
-            tasks += str(self.tasks[task])
-        return self.TEMPLATE.format(tasks=tasks,project=str(self.project))
-
+    def load_default_properties(self):
+        self.set_property(JugglerProject())
+        self.set_property(JugglerIcalreport())
+        
 class GenericJuggler(object):
 
     '''Class for task-juggling generic results'''
-
+    
     def __init__(self):
         '''
         Construct a generic juggler object
@@ -482,9 +499,17 @@ class GenericJuggler(object):
         '''
         for task in tasks:
             task.validate(tasks)
-
+    
     def load_issues(self):
         raise NotImplementedError
+
+    def load_issues_incremetal(self):
+        if self.loaded: return []
+        self.loaded = True
+        return self.load_issues()
+    
+    def create_task_instance(self, issue):
+        return JugglerTask(issue)
 
     def load_issues_from_generic(self):
         '''
@@ -495,6 +520,8 @@ class GenericJuggler(object):
         '''
         tasks = []
         busy = True
+        self.loaded = False
+        
         while busy:
             try:
                 issues = self.load_issues()
@@ -513,7 +540,7 @@ class GenericJuggler(object):
 
             for issue in issues:
                 logging.debug('Retrieved %s: %s', issue.key, issue.fields.summary)
-                tasks.append(JugglerTask(issue))
+                tasks.append(self.create_task_instance(issue))
 
         self.validate_tasks(tasks)
 
@@ -530,16 +557,17 @@ class GenericJuggler(object):
             output = tempfile.mkstemp()
         self.infile = output
         
-        # TODO HERE: set report folder!
-        
         issues = self.load_issues_from_generic()
         if not issues:
             return None
+        # TODO HERE set reportfolder from parameters
+        src = JugglerSource()
+        for issue in issues:
+            src.set_property(issue)
         if output:
             with open(output, 'w') as out:
-                for issue in issues:
-                    out.write(str(issue))
-        return issues
+                out.write(str(src))
+        return src
         
     def run(self, outfolder=None, infile=None):
         '''
