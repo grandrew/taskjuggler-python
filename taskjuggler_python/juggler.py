@@ -6,7 +6,7 @@ generic to task-juggler extraction script
 This script queries generic, and generates a task-juggler input file in order to generate a gant-chart.
 """
 
-import logging,tempfile,subprocess
+import logging,tempfile,subprocess,datetime,icalendar,shutil,os
 
 DEFAULT_LOGLEVEL = 'warning'
 DEFAULT_OUTPUT = 'export.tjp'
@@ -31,6 +31,16 @@ def set_logging_level(loglevel):
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % loglevel)
     logging.basicConfig(level=numeric_level)
+    
+def to_tj3time(dt):
+    """
+    Convert python date or datetime object to TJ3 format
+    
+    """
+    return dt.isoformat().replace("T", "-").split(".")[0]
+
+def to_tj3interval(start, end):
+    return "%s - %s" % (to_tj3time(start), to_tj3time(end))
 
 def to_identifier(key):
     '''
@@ -145,7 +155,7 @@ class JugglerTaskProperty(object):
             str: String representation of the task property in juggler syntax
         '''
 
-        if self.get_value():
+        if self.get_value(): # TODO: list support (like allocate multiple) (copy from taskdepends)
             return self.TEMPLATE.format(prop=self.get_name(),
                                         value=self.VALUE_TEMPLATE.format(prefix=self.PREFIX,
                                                                          value=self.get_value(),
@@ -158,7 +168,7 @@ class JugglerTaskAllocate(JugglerTaskProperty):
     DEFAULT_NAME = 'allocate'
     DEFAULT_VALUE = 'not assigned'
 
-    def load_from_issue(self, issue):
+    def load_from_issue(self, issue = None):
         '''
         Load the object with data from a generic issue
 
@@ -166,8 +176,8 @@ class JugglerTaskAllocate(JugglerTaskProperty):
             issue (class): The generic issue to load from
         '''
         self.set_value(self.DEFAULT_VALUE)
-        if hasattr(issue.fields, 'assignee'):
-            self.set_value(issue.fields.assignee.name)
+        if not issue is None:
+            self.set_value(issue) # TODO: this may be list or primitive
 
 class JugglerTaskEffort(JugglerTaskProperty):
     '''Class for the effort (estimate) of a juggler task'''
@@ -301,6 +311,7 @@ class JugglerCompoundKeyword(object):
         self.keyword = self.DEFAULT_KEYWORD
         self.id = self.DEFAULT_ID
         self.summary = self.DEFAULT_SUMMARY
+        self.option2 = ""
         self.properties = {}
         self.load_default_properties(issue)
 
@@ -332,10 +343,21 @@ class JugglerCompoundKeyword(object):
     def set_id(self, id):
         self.id = to_identifier(id)
     
+    def walk(self, cls, ls = None):
+        if ls is None: ls = []
+        for key, item in self.properties.items():
+            if isinstance(item, JugglerCompoundKeyword):
+                ls = item.walk(cls, ls)
+            if isinstance(item, cls):
+                ls.append(item)
+        return ls
+    
     def __str__(self):
         out = self.TEMPLATE.format(header=self.COMMENTS_HEADER,keyword=self.keyword, id=self.id)
         if self.summary:
             out += ' "%s"' % self.summary.replace('\"', '\\\"')
+        if self.option2:
+            out += ' %s ' % self.option2
         if self.properties and self.ENCLOSED_BLOCK: out += " {\n"
         for prop in self.properties:
             out += str(self.properties[prop])
@@ -343,6 +365,7 @@ class JugglerCompoundKeyword(object):
         return out
 
 class JugglerSimpleProperty(JugglerCompoundKeyword):
+    LOG_STRING = "Default Simple Property"
     DEFAULT_NAME = 'unknown_property'
     DEFAULT_VALUE = ''
     
@@ -367,13 +390,21 @@ class JugglerTimezone(JugglerSimpleProperty):
     DEFAULT_VALUE = 'Europe/Dublin'
 
 class JugglerOutputdir(JugglerSimpleProperty):
+    LOG_STRING = "outputdir property"
     DEFAULT_NAME = 'outputdir'
     DEFAULT_VALUE = 'REPORT'
+    # TODO HERE: need to create the outputdir folder for this to execute!
 
 class JugglerIcalreport(JugglerSimpleProperty):
+    LOG_STRING = "icalreport property"
     DEFAULT_NAME = 'icalreport'
     DEFAULT_VALUE = 'calendar'
-    
+
+class JugglerResource(JugglerCompoundKeyword):
+    DEFAULT_KEYWORD = "resource"
+    DEFAULT_ID = "me"
+    DEFAULT_SUMMARY = "Default Resource"
+
 class JugglerTask(JugglerCompoundKeyword):
 
     '''Class for a task for Task-Juggler'''
@@ -430,8 +461,28 @@ class JugglerTask(JugglerCompoundKeyword):
 class JugglerTimesheet():
     pass
 
-class JugglerBooking(JugglerTaskProperty):
-    pass
+class JugglerBooking(JugglerCompoundKeyword):
+    LOG_STRING = "JugglerBooking"
+    DEFAULT_KEYWORD = "booking"
+    DEFAULT_ID = "me" # resource
+    
+    def load_default_properties(self, issue = None):
+        self.start = None
+        self.end = None
+    
+    def set_resource(self, res):
+        self.set_id(res)
+    
+    def set_interval(self, start, end):
+        self.start = start
+        self.end = end
+        self.option2 = to_tj3interval(self.start, self.end)
+        
+    def load_from_issue(self, issue = None):
+        start = issue["start"]
+        end = issue["end"]
+        self.set_interval(start, end)
+        self.set_resource(issue["resource"])
 
 class JugglerProject(JugglerCompoundKeyword):
     
@@ -440,11 +491,17 @@ class JugglerProject(JugglerCompoundKeyword):
     LOG_STRING = "JugglerProject"
     DEFAULT_KEYWORD = 'project'
     DEFAULT_ID = "default" # id may be empty for some keywords
-    DEFAULT_SUMMARY = '' # no summary is possible everywhere
+    DEFAULT_SUMMARY = 'Default Project' # no summary is possible everywhere
+    DEFAULT_INTERVAL = "2017-10-10 - 2035-10-10"
     
     def load_default_properties(self, issue = None):
         self.set_property(JugglerTimezone())
         self.set_property(JugglerOutputdir())
+        self.option2 = self.DEFAULT_INTERVAL
+    
+    def set_interval(self, start, end):
+        self.option2 = to_tj3interval(start, end)
+        
 
 class JugglerSource(JugglerCompoundKeyword):
     """
@@ -466,12 +523,20 @@ class JugglerSource(JugglerCompoundKeyword):
     ENCLOSED_BLOCK = False
     
     def load_default_properties(self, issue = None):
+        self.set_property(JugglerResource())
         self.set_property(JugglerProject())
         self.set_property(JugglerIcalreport())
+    
+    def toJSON(self):
+        # TODO HERE: JSON export for tasks
+        # NO! no json here!!! -> json is level up!
+        pass
         
 class GenericJuggler(object):
 
     '''Class for task-juggling generic results'''
+    
+    src = None
     
     def __init__(self):
         '''
@@ -552,8 +617,24 @@ class GenericJuggler(object):
         self.validate_tasks(tasks)
 
         return tasks
+    
+    def create_jugglersource_instance(self):
+        return JugglerSource()
+        
+    def juggle(self):
+        """
+        Export the loaded issues onto the JuggleSource structure
+        """
+        issues = self.load_issues_from_generic()
+        if not issues:
+            return None
+        # TODO HERE set reportfolder from parameters
+        self.src = self.create_jugglersource_instance()
+        for issue in issues:
+            self.src.set_property(issue)
+        return self.src
 
-    def write_file(self, output=None, reportfolder=None):
+    def write_file(self, output=None):
         '''
         Query generic and generate task-juggler output from given issues
 
@@ -561,18 +642,38 @@ class GenericJuggler(object):
             output (str): Name of output file, for task-juggler
         '''
         
-        issues = self.load_issues_from_generic()
-        if not issues:
-            return None
-        # TODO HERE set reportfolder from parameters
-        src = JugglerSource()
-        for issue in issues:
-            src.set_property(issue)
-        if output:
-            with open(output, 'w') as out:
-                out.write(str(src))
-        return src
+        s = str(self.src)
         
+        if output and isinstance(output, str):
+            with open(output, 'w') as out:
+                out.write(s)
+        elif output and isinstance(output, file):
+            output.write(s)
+        # else:
+        #     raise ValueError("output should be a filename string or a file handler")
+        return s
+    
+    def read_ical_result(self, icalfile):
+        tasks = self.src.walk(JugglerTask)
+        cal = icalendar.Calendar.from_ical(file(icalfile).read())
+        for ev in cal.walk('VEVENT'):
+            start_date = ev.decoded("DTSTART")
+            end_date = ev.decoded("DTEND")
+            id = ev.decoded("UID").split("-")[1]
+            for t in tasks:
+                if t.id == id:
+                    # logging.info("Testing %s" % str(t))
+                    # logging.info("Got %s" % repr(t.walk(JugglerTaskAllocate)))
+                    
+                    # ical does not support resource allocation reporting
+                    # so we do not support multiple resource here
+                    # and we don't support them yet anyways
+                    t.set_property(JugglerBooking({
+                        "resource":t.walk(JugglerTaskAllocate)[0].get_value(),
+                        "start": start_date,
+                        "end": end_date
+                        }))
+    
     def run(self, outfolder=None, infile=None):
         '''
         Run the taskjuggler task
@@ -580,33 +681,50 @@ class GenericJuggler(object):
         Args:
             output (str): Name of output file, for task-juggler
         '''
-        if outfolder is None:
-            outfolder = tempfile.mkdtemp()
-        self.outfolder = outfolder
-        if infile is None:
-            infile = self.infile
-        subprocess.call(["/usr/bin/env", "tj3", self.infile])
-        
-    def juggle(self, infile = None):
-        '''
-        Run the juggler with default settings
-
-        Args:
-            output (str): Name of output file, for task-juggler
+        if not self.src:
+            self.juggle()
             
-        Returns:
-            str: taskjuggler output folder location
-        '''
-        self.load_issues_from_generic()
+        if outfolder is None:
+            outfolder = tempfile.mkdtemp("TJP")
+        self.outfolder = outfolder
+        
         if infile is None:
-            infile = tempfile.mkstemp()[1]
+            infile = tempfile.mkstemp(".tjp")[1]
         self.infile = infile
+        
+        reportdir = self.src.walk(JugglerOutputdir)
+        orig_rep = reportdir[0].get_value()
+        reportdir[0].set_value(outfolder)
+        
+        ical_report_name = "calendar_out"
+        ical_report_path = os.path.join(outfolder, ical_report_name)
+        icalreport = self.src.walk(JugglerIcalreport)
+        orig_cal = icalreport[0].get_value()
+        icalreport[0].set_value(ical_report_name)
+        
         self.write_file(infile)
-        self.run()
-        return self.outfolder
+        
+        subprocess.call(["/usr/bin/env", "tj3", infile])
+        
+        self.read_ical_result(ical_report_path+".ics")
+        
+        # shutil.rmtree(outfolder)
+        # os.remove(infile)
+        icalreport[0].set_value(orig_cal)
+        reportdir[0].set_value(orig_rep)
+        
+        
+        # TODO HERE: load the ical file back to the actual tree (no tree support yet?)
         
     def clean(self):
         "clean after running"
+        raise NotImplementedError
+    
+    def walk(self, cls):
+        return self.src.walk(cls)
+    
+    def __inter__(self):
+        "provide dict(j) method to generate dictionary structure for tasks"
         raise NotImplementedError
     
     def __del__(self):

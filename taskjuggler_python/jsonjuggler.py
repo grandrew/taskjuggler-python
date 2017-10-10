@@ -25,7 +25,7 @@ class DictJugglerTask(JugglerTask):
         self.set_property(DictJugglerTaskEffort(issue))
         self.set_property(DictJugglerTaskAllocate(issue))
     def load_from_issue(self, issue):
-        self.set_id(to_identifier(issue["id"]))
+        self.set_id(to_identifier(issue["id"])) # TODO HERE: bi-directional ID decoder!
         if "summary" in issue: self.summary = issue["summary"]
 
 class DictJuggler(GenericJuggler):
@@ -41,5 +41,7 @@ class DictJuggler(GenericJuggler):
 class JsonJuggler(DictJuggler):
     def __init__(self, json_issues):
         self.issues = json.loads(json_issues)
-        
+    def toJSON(self):
+        # TODO HERE: decode tasks back to JSON
+        pass
 

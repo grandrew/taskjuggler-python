@@ -19,14 +19,14 @@ def describe_JugglerCompoundKeyword():
 
 def describe_JugglerProject():
     def default_create():
-        expect(str(juggler.JugglerProject())) == '\nproject default {\n\ntimezone "Europe/Dublin"\noutputdir "REPORT"\n}'
+        expect(str(juggler.JugglerProject())) == '\nproject default "Default Project" 2017-10-10 - 2035-10-10  {\n\ntimezone "Europe/Dublin"\noutputdir "REPORT"\n}'
         
 def describe_JugglerSource():
     def default_create():
-        expect(str(juggler.JugglerSource())) == juggler.JugglerSource.COMMENTS_HEADER + '\n \nproject default {\n\ntimezone "Europe/Dublin"\noutputdir "REPORT"\n}\nicalreport "calendar"'
+        expect(str(juggler.JugglerSource())) == juggler.JugglerSource.COMMENTS_HEADER + '\n \nproject default "Default Project" 2017-10-10 - 2035-10-10  {\n\ntimezone "Europe/Dublin"\noutputdir "REPORT"\n}\nresource me "Default Resource"\nicalreport "calendar"'
     def tasks_create():
         s = juggler.JugglerSource()
         t = juggler.JugglerTask()
         s.set_property(t)
-        expect(str(s)) == juggler.JugglerSource.COMMENTS_HEADER + '\n \nproject default {\n\ntimezone "Europe/Dublin"\noutputdir "REPORT"\n}\ntask unknown_task "Task is not initialized"\nicalreport "calendar"'
+        expect(str(s)) == juggler.JugglerSource.COMMENTS_HEADER + '\n \nproject default "Default Project" 2017-10-10 - 2035-10-10  {\n\ntimezone "Europe/Dublin"\noutputdir "REPORT"\n}\nresource me "Default Resource"\ntask unknown_task "Task is not initialized"\nicalreport "calendar"'
 

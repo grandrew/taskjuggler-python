@@ -43,11 +43,16 @@ $ python
 - working hours, shifts
 - priority
 - mark tasks as done / decouple depends
+- appointments 
+    - date+time - `period`
+    - date only (as in "do at deadline")
+- *deadline (date) - is a check that the task is not scheduled after this date [not in planner - this is a check and can not be enforced]*
 - task grouping
 - limits dailymax, etc.
 - fixed stat time/end time (ALAP/ASAP strats)
     - period for appointments
 - non-splittable tasks (`X = effort; limits { maximum Xh }` ??), split punishing
+- extensive timezone support
 
 ## General enhancements
 
@@ -56,6 +61,13 @@ $ python
 - Extensive testing including safe strings checks
 - TaskJuggler task identifier full path, subtask and validation
 - Bookings and timesheets support
-- Data collection, analytics and prediction (e.g. average task error)
 - Monte-carlo simulations
+- Provide JSONEncoder and JSONDecoder interfaces for jsonjuggler module
+    - https://stackoverflow.com/questions/3768895/how-to-make-a-class-json-serializable 
+- Data collection, analytics and prediction (e.g. average task error)
+    - Store bookings and do automatic progress analytics
 - Different backend support (e.g. OptaPlanner/Drools; rename to `python-planner` package?)
+    - produce multivariare pareto-optimal solutions
+    - export to MiniZinc / FlatZinc for generic CP solvers
+    - GPU-accelerated CP solvers?
+    - QCL (Quantum Computation Language) export
