@@ -23,10 +23,10 @@ def describe_JugglerProject():
         
 def describe_JugglerSource():
     def default_create():
-        expect(str(juggler.JugglerSource())) == juggler.JugglerSource.COMMENTS_HEADER + '\n  {\n\nproject default {\n\ntimezone "Europe/Dublin"\noutputdir "REPORT"\n}\nicalreport "calendar"\n}'
+        expect(str(juggler.JugglerSource())) == juggler.JugglerSource.COMMENTS_HEADER + '\n \nproject default {\n\ntimezone "Europe/Dublin"\noutputdir "REPORT"\n}\nicalreport "calendar"'
     def tasks_create():
         s = juggler.JugglerSource()
         t = juggler.JugglerTask()
         s.set_property(t)
-        expect(str(s)) == juggler.JugglerSource.COMMENTS_HEADER + '\n  {\n\nproject default {\n\ntimezone "Europe/Dublin"\noutputdir "REPORT"\n}\nicalreport "calendar"\ntask unknown_task "Task is not initialized"\n}'
+        expect(str(s)) == juggler.JugglerSource.COMMENTS_HEADER + '\n \nproject default {\n\ntimezone "Europe/Dublin"\noutputdir "REPORT"\n}\ntask unknown_task "Task is not initialized"\nicalreport "calendar"'
 

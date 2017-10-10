@@ -26,6 +26,7 @@ class DictJugglerTask(JugglerTask):
         self.set_property(DictJugglerTaskAllocate(issue))
     def load_from_issue(self, issue):
         self.set_id(to_identifier(issue["id"]))
+        if "summary" in issue: self.summary = issue["summary"]
 
 class DictJuggler(GenericJuggler):
     """ a simple dictionary based format parser """

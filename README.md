@@ -38,6 +38,24 @@ $ python
 
 # TODO
 
+## TaskJuggler support
+
+- working hours, shifts
+- priority
+- mark tasks as done / decouple depends
+- task grouping
+- limits dailymax, etc.
+- fixed stat time/end time (ALAP/ASAP strats)
+    - period for appointments
+- non-splittable tasks (`X = effort; limits { maximum Xh }` ??), split punishing
+
+## General enhancements
+
+- Loading scheduling results
+    - export back to json
 - Extensive testing including safe strings checks
+- TaskJuggler task identifier full path, subtask and validation
 - Bookings and timesheets support
+- Data collection, analytics and prediction (e.g. average task error)
+- Monte-carlo simulations
 - Different backend support (e.g. OptaPlanner/Drools; rename to `python-planner` package?)
