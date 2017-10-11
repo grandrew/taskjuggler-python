@@ -1,6 +1,6 @@
 # json parser implementation
 from juggler import *
-import json, re
+import json, re, math
 
 class DictJugglerTaskDepends(JugglerTaskDepends):
     def load_from_issue(self, issue):
@@ -16,11 +16,12 @@ class DictJugglerTaskDepends(JugglerTaskDepends):
 class DictJugglerTaskEffort(JugglerTaskEffort):
     UNIT = "h"
     def load_from_issue(self, issue):
-        if "effort" in issue: self.set_value(int(issue["effort"]))
+        if "effort" in issue: self.set_value(math.ceil(issue["effort"]))
 
 class DictJugglerTaskAllocate(JugglerTaskAllocate):
     def load_from_issue(self, issue):
         if "allocate" in issue: self.set_value(issue["allocate"])
+        else: self.set_value("me") # stub!
 
 class DictJugglerTask(JugglerTask):
     def load_default_properties(self, issue):

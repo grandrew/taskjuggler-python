@@ -54,8 +54,8 @@ setuptools.setup(
     packages=setuptools.find_packages(),
 
     entry_points={'console_scripts': [
-        'taskjuggler_python-cli = taskjuggler_python.cli:main',
-        'taskjuggler_python-gui = taskjuggler_python.gui:main',
+        'tjp-client = taskjuggler_python.tjpy_client:main',
+        # 'taskjuggler_python-gui = taskjuggler_python.gui:main',
     ]},
 
     long_description=build_description(),

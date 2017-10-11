@@ -231,9 +231,10 @@ class JugglerTaskEffort(JugglerTaskProperty):
             tasks (list):       List of JugglerTask's to which the current task belongs. Will be used to
                                 verify relations to other tasks.
         '''
-        if self.get_value() < self.MINIMAL_VALUE:
-            logging.warning('Estimate %s%s too low for %s, assuming %s%s', self.get_value(), self.UNIT, task.key, self.MINIMAL_VALUE, self.UNIT)
-            self.set_value(self.MINIMAL_VALUE)
+        pass
+        # if self.get_value() < self.MINIMAL_VALUE:
+        #     logging.warning('Estimate %s%s too low for %s, assuming %s%s', self.get_value(), self.UNIT, task.key, self.MINIMAL_VALUE, self.UNIT)
+        #     self.set_value(self.MINIMAL_VALUE)
 
 class JugglerTaskDepends(JugglerTaskProperty):
     '''Class for the effort (estimate) of a juggler task'''
@@ -732,8 +733,8 @@ class GenericJuggler(object):
         
         self.read_ical_result(ical_report_path+".ics")
         
-        # shutil.rmtree(outfolder)
-        # os.remove(infile)
+        # shutil.rmtree(self.outfolder)
+        # os.remove(self.infile)
         icalreport[0].set_value(orig_cal)
         reportdir[0].set_value(orig_rep)
         
@@ -742,6 +743,10 @@ class GenericJuggler(object):
         
     def clean(self):
         "clean after running"
+        # try: shutil.rmtree(self.outfolder)
+        # except:  pass
+        # try: os.remove(self.infile)
+        # except: pass
         raise NotImplementedError
     
     def walk(self, cls):
