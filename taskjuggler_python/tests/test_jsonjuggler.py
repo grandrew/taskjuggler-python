@@ -28,7 +28,7 @@ resource me "Default Resource"
 icalreport "calendar"
 task tjp_numid_2 "Task is not initialized" {
     depends !tjp_numid_1
-    effort 1h
+    effort 2h
     allocate me
 
 }

@@ -221,7 +221,13 @@ class JugglerTaskEffort(JugglerTaskProperty):
             self.set_value(val / self.FACTOR)
         else:
             logging.warning('No estimate found for %s, assuming %s%s', issue.key, self.DEFAULT_VALUE, self.UNIT)
-
+    def set_value(self, value):
+        '''
+        Set the value for effort. Will convert whatever number to integer.
+        
+        Default class unit is 'days'. Can be overrided by setting "UNIT" global class attribute
+        '''
+        self.value = int(value)
     def validate(self, task, tasks):
         '''
         Validate (and correct) the current task property
