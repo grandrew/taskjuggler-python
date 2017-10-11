@@ -548,7 +548,7 @@ class JugglerProject(JugglerCompoundKeyword):
         self.set_property(JugglerOutputdir())
         self.option2 = self.DEFAULT_INTERVAL
     
-    def set_interval(self, start, end):
+    def set_interval(self, start, end = datetime.datetime(2035, 1, 1)):
         self.option2 = to_tj3interval(start, end)
         
 

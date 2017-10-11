@@ -51,7 +51,28 @@ def main():
     
     airtable = Airtable(ARGS.base, ARGS.table, api_key=ARGS.apikey)
     
-    JUGGLER = DictJuggler([x["fields"] for x in airtable.get_all(view=ARGS.view)])
+    data = [x["fields"] for x in airtable.get_all(view=ARGS.view)] 
+    for rec in data:
+        preference = 0
+        if "preference" in rec:
+            preference = int(rec['preference'])
+        if "priority" in rec:
+            if rec["priority"] == "Low":
+                pri = preference + 100000
+            elif rec["priority"] == "High":
+                pri = preference + 200000
+            elif rec["priority"] == "CRITICAL":
+                pri = preference + 300000
+            else:
+                pri = 0
+        else:
+            pri = preference + 100000 # low
+        rec["priority"] = pri
+        if ['appointment'] in rec:
+            rec['start'] = rec['appointment']
+    
+    # TODO HERE: set project start date to today!
+    JUGGLER = DictJuggler(data)
     JUGGLER.run()
     
     for t in JUGGLER.walk(juggler.JugglerTask):
