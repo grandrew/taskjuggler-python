@@ -7,6 +7,7 @@ This script queries generic, and generates a task-juggler input file in order to
 """
 
 import logging,tempfile,subprocess,datetime,icalendar,shutil,os
+from collections import OrderedDict
 
 DEFAULT_LOGLEVEL = 'warning'
 DEFAULT_OUTPUT = 'export.tjp'
@@ -42,6 +43,10 @@ def to_tj3time(dt):
 def to_tj3interval(start, end):
     return "%s - %s" % (to_tj3time(start), to_tj3time(end))
 
+TJP_NUM_ID_PREFIX = "tjp_numid_"
+TJP_DASH_PREFIX = "__DASH__"
+TJP_SPACE_PREFIX = "__SPACE__"
+
 def to_identifier(key):
     '''
     Convert given key to identifier, interpretable by TaskJuggler as a task-identifier
@@ -53,8 +58,14 @@ def to_identifier(key):
         str: Valid task-identifier based on given key
     '''
     if is_number(key):
-        key = "id"+str(key)
-    return key.replace('-', '_').replace(" ", "_")
+        key = TJP_NUM_ID_PREFIX+str(key)
+    key = key.replace('-', TJP_DASH_PREFIX).replace(" ", TJP_SPACE_PREFIX)
+    return key
+
+def from_identifier(key):
+    if TJP_NUM_ID_PREFIX in key:
+        return int(key.replace(TJP_NUM_ID_PREFIX, ""))
+    return key.replace(TJP_DASH_PREFIX, "-").replace(TJP_SPACE_PREFIX, " ")
 
 class JugglerTaskProperty(object):
     '''Class for a property of a Task Juggler'''
@@ -78,6 +89,7 @@ class JugglerTaskProperty(object):
         self.name = self.DEFAULT_NAME
         self.set_value(self.DEFAULT_VALUE)
         self.empty = False
+        self.parent = None
         self.load_default_properties(issue)
 
         if issue:
@@ -155,7 +167,9 @@ class JugglerTaskProperty(object):
             str: String representation of the task property in juggler syntax
         '''
 
-        if self.get_value(): # TODO: list support (like allocate multiple) (copy from taskdepends)
+        if self.get_value(): 
+            # TODO: list support (like allocate multiple) (copy from taskdepends)
+            # TODO: identifier conversion support?
             return self.TEMPLATE.format(prop=self.get_name(),
                                         value=self.VALUE_TEMPLATE.format(prefix=self.PREFIX,
                                                                          value=self.get_value(),
@@ -244,6 +258,8 @@ class JugglerTaskDepends(JugglerTaskProperty):
         Args:
             issue (class): The generic issue to load from
         '''
+        raise NotImplementedError("load_from_issue is not implemented for this depend")
+        # TODO: remove these - are for jira
         self.set_value(self.DEFAULT_VALUE)
         if hasattr(issue.fields, 'issuelinks'):
             for link in issue.fields.issuelinks:
@@ -259,11 +275,11 @@ class JugglerTaskDepends(JugglerTaskProperty):
             tasks (list):       List of JugglerTask's to which the current task belongs. Will be used to
                                 verify relations to other tasks.
         '''
-        pass
-        # for val in self.get_value():
-        #     if val not in [to_identifier(tsk.key) for tsk in tasks]:
-        #         logging.warning('Removing link to %s for %s, as not within scope', val, task.key)
-        #         self.value.remove(val)
+        # TODO: add support for nested tasks with self.parent
+        for val in list(self.get_value()):
+             if val not in [tsk.get_id() for tsk in tasks]:
+                 logging.warning('Removing link to %s for %s, as not within scope', val, task.get_id())
+                 self.value.remove(val)
 
     def __str__(self):
         '''
@@ -279,7 +295,7 @@ class JugglerTaskDepends(JugglerTaskProperty):
                 if valstr:
                     valstr += ', '
                 valstr += self.VALUE_TEMPLATE.format(prefix=self.PREFIX,
-                                                     value=val,
+                                                     value=to_identifier(val),
                                                      suffix=self.SUFFIX)
             return self.TEMPLATE.format(prop=self.get_name(),
                                         value=valstr)
@@ -308,11 +324,12 @@ class JugglerCompoundKeyword(object):
     def __init__(self, issue=None):
         logging.info('Create %s', self.LOG_STRING)
         self.empty = False
+        self.parent = None
         self.keyword = self.DEFAULT_KEYWORD
         self.id = self.DEFAULT_ID
         self.summary = self.DEFAULT_SUMMARY
         self.option2 = ""
-        self.properties = {}
+        self.properties = OrderedDict()
         self.load_default_properties(issue)
 
         if issue:
@@ -338,10 +355,12 @@ class JugglerCompoundKeyword(object):
         return self.id
 
     def set_property(self, prop):
-        if prop: self.properties[prop.get_name() + prop.get_id()] = prop
+        if prop: 
+            self.properties[prop.get_name() + repr(prop.get_id())] = prop
+            prop.parent = self # TODO: control un-set?, GC?
     
     def set_id(self, id):
-        self.id = to_identifier(id)
+        self.id = id
     
     def decode(self):
         return self.option2
@@ -356,7 +375,8 @@ class JugglerCompoundKeyword(object):
         return ls
     
     def __str__(self):
-        out = self.TEMPLATE.format(header=self.COMMENTS_HEADER,keyword=self.keyword, id=self.id)
+        if self.empty: return ""
+        out = self.TEMPLATE.format(header=self.COMMENTS_HEADER,keyword=self.keyword, id=to_identifier(self.id))
         if self.summary:
             out += ' "%s"' % self.summary.replace('\"', '\\\"')
         if self.option2:
@@ -532,14 +552,9 @@ class JugglerSource(JugglerCompoundKeyword):
     ENCLOSED_BLOCK = False
     
     def load_default_properties(self, issue = None):
-        self.set_property(JugglerResource())
         self.set_property(JugglerProject())
+        self.set_property(JugglerResource())
         self.set_property(JugglerIcalreport())
-    
-    def toJSON(self):
-        # TODO HERE: JSON export for tasks
-        # NO! no json here!!! -> json is level up!
-        pass
         
 class GenericJuggler(object):
 
@@ -668,7 +683,7 @@ class GenericJuggler(object):
         for ev in cal.walk('VEVENT'):
             start_date = ev.decoded("DTSTART")
             end_date = ev.decoded("DTEND")
-            id = ev.decoded("UID").split("-")[1]
+            id = from_identifier(ev.decoded("UID").split("-")[1])
             for t in tasks:
                 if t.id == id:
                     # logging.info("Testing %s" % str(t))

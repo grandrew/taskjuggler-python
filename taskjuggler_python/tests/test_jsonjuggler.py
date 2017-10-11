@@ -25,18 +25,18 @@ timezone "Europe/Dublin"
 outputdir "REPORT"
 }
 resource me "Default Resource"
-task id2 "Task is not initialized" {
-    depends !id1
+icalreport "calendar"
+task tjp_numid_2 "Task is not initialized" {
+    depends !tjp_numid_1
     effort 1h
     allocate me
 
 }
-task id1 "test" {
+task tjp_numid_1 "test" {
     effort 3h
     allocate me
 
-}
-icalreport "calendar"'''
+}'''
     def test_walk1():
         jg = jsonjuggler.JsonJuggler(json_test_tasks)
         jg.juggle()

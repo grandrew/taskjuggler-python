@@ -4,9 +4,11 @@ Unix: [![Unix Build Status](https://img.shields.io/travis/grandrew/taskjuggler-p
 
 It's 2017 and still most of the tasks/project management tools lack support for any means of automated planning. This library helps to integrate automated planner that's been available for over a decade, with a shot of suporting different back-ends.
 
+Life is dynamic and ever-changing. While there is no need to strictly follow the plans, a dynamically recalculating schedule will definitely help to keep up with the pace :-)
+
 # Overview
 
-Python interfaces to TaskJuggler 3 planner
+`python_taskjuggler` module provides Python interfaces to TaskJuggler 3 planner and an example command line utility that shows how to create interfaces to APIs (currently only airtable. jira, trello are planned).
 
 # Setup
 
@@ -43,20 +45,58 @@ After installation, the package can imported:
 
 ```sh
 $ python
->>> import taskjuggler_python
->>> taskjuggler_python.__version__
+>>> from taskjuggler_python import JsonJuggler
+>>> my_tasks = """[
+  {
+    "id": 2,
+    "depends": [
+      1
+    ],
+    "allocate": "me",
+    "effort": 1.2
+  },
+  {
+    "id": 1,
+    "effort": 3,
+    "allocate": "me",
+    "summary": "test"
+  }
+]"""
+>>> jg = JsonJuggler(my_tasks)
+>>> jg.run()
+>>> jg.toJSON()
+[
+    {
+        "allocate": "me",
+        "booking": "2017-10-10T11:00:00+00:00",
+        "depends": [
+            1
+        ],
+        "effort": 1.2,
+        "id": 2
+    },
+    {
+        "allocate": "me",
+        "booking": "2017-10-10T08:00:00+00:00",
+        "effort": 3,
+        "id": 1,
+        "summary": "test"
+    }
+]
 ```
+
+See code for more examples of how to use the interfaces.
 
 # TODO
 
 ## TaskJuggler support
 
-- working hours, shifts
 - priority
-- mark tasks as done / decouple depends
 - appointments 
     - date+time - `period`
     - date only (as in "do at deadline")
+- working hours, shifts
+- exporting of tjp file; generating reports, gantt charts, etc.
 - *deadline (date) - is a check that the task is not scheduled after this date [not in planner - this is a check and can not be enforced]*
 - task grouping
 - limits dailymax, etc.
@@ -64,6 +104,7 @@ $ python
     - period for appointments
 - non-splittable tasks (`X = effort; limits { maximum Xh }` ??), split punishing
 - extensive timezone support
+- mark tasks as done / decouple depends
 
 ## General enhancements
 

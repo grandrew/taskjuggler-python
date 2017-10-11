@@ -1,12 +1,6 @@
 # json parser implementation
 from juggler import *
-import json
-
-def id_encode(id):
-    return "id%s" % id
-    
-def id_decode(e_id):
-    return int(e_id[2:])
+import json, re
 
 class DictJugglerTaskDepends(JugglerTaskDepends):
     def load_from_issue(self, issue):
@@ -14,7 +8,10 @@ class DictJugglerTaskDepends(JugglerTaskDepends):
         Args:
             issue["depends"] - a list of identifiers that this task depends on
         """
-        if "depends" in issue: self.set_value([to_identifier(x) for x in issue["depends"]])
+        if "depends" in issue: 
+            if isinstance(issue["depends"], str):
+                self.set_value([x for x in re.findall(r"[\w']+", issue["depends"])])
+            else: self.set_value([x for x in issue["depends"]])
 
 class DictJugglerTaskEffort(JugglerTaskEffort):
     UNIT = "h"
@@ -31,7 +28,7 @@ class DictJugglerTask(JugglerTask):
         self.set_property(DictJugglerTaskEffort(issue))
         self.set_property(DictJugglerTaskAllocate(issue))
     def load_from_issue(self, issue):
-        self.set_id(id_encode(issue["id"])) # TODO: deal with IDs internally, remove this
+        self.set_id(issue["id"])
         if "summary" in issue: self.summary = issue["summary"]
 
 class DictJuggler(GenericJuggler):
@@ -50,7 +47,7 @@ class JsonJuggler(DictJuggler):
         # TODO HERE: decode tasks back to JSON
         for t in self.walk(JugglerTask):
             for i in self.issues:
-                if id_decode(t.get_id()) == i["id"]:
+                if t.get_id() == i["id"]:
                     i["booking"] = t.walk(JugglerBooking)[0].decode()[0].isoformat()
         return json.dumps(self.issues, sort_keys=True, indent=4, separators=(',', ': '))
 
