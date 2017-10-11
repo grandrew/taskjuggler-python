@@ -6,26 +6,16 @@ from expecter import expect
 
 from click.testing import CliRunner
 
-from taskjuggler_python.cli import main
+from taskjuggler_python.tjpy_client import main
 
 
-@pytest.fixture
-def runner():
-    return CliRunner()
+# @pytest.fixture
+# def runner():
+#     return CliRunner()
 
 
-def describe_cli():
+# def describe_cli():
 
-    def describe_conversion():
+#     def describe_conversion():
 
-        def when_integer(runner):
-            result = runner.invoke(main, ['42'])
 
-            expect(result.exit_code) == 0
-            expect(result.output) == "12.80165\n"
-
-        def when_invalid(runner):
-            result = runner.invoke(main, ['foobar'])
-
-            expect(result.exit_code) == 0
-            expect(result.output) == ""

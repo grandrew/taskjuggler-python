@@ -6,7 +6,6 @@ import click
 
 from getpass import getpass
 import argparse, sys
-from . import utils
 from jsonjuggler import *
 import juggler
 
