@@ -20,7 +20,7 @@ install:
   - make install
 
 script:
-  - make check
+  # - make check
   - make test
 
 after_success:
