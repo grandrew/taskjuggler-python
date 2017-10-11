@@ -1,6 +1,7 @@
 # json parser implementation
 from juggler import *
 import json, re, math
+import dateutil.parser
 
 class DictJugglerTaskDepends(JugglerTaskDepends):
     def load_from_issue(self, issue):
@@ -12,7 +13,14 @@ class DictJugglerTaskDepends(JugglerTaskDepends):
             if isinstance(issue["depends"], str):
                 self.set_value([x for x in re.findall(r"[\w']+", issue["depends"])])
             else: self.set_value([x for x in issue["depends"]])
-
+class DictJugglerTaskPriority(JugglerTaskPriority):
+    def load_from_issue(self, issue):
+        if "priority" in issue: self.set_value(int(issue["priority"]))
+        
+class DictJugglerTaskStart(JugglerTaskStart):
+    def load_from_issue(self, issue):
+        if "start" in issue: self.set_value(dateutil.parser.parse(issue["start"]))
+        
 class DictJugglerTaskEffort(JugglerTaskEffort):
     UNIT = "h"
     def load_from_issue(self, issue):

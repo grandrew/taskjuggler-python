@@ -193,6 +193,19 @@ class JugglerTaskAllocate(JugglerTaskProperty):
         if not issue is None:
             self.set_value(issue) # TODO: this may be list or primitive
 
+class JugglerTaskPriority(JugglerTaskProperty):
+    '''Class for task priority'''
+    DEFAULT_NAME = "priority"
+    DEFAULT_VALUE = 1000
+
+class JugglerTaskStart(JugglerTaskProperty):
+    DEFAULT_NAME = "start"
+    DEFAULT_VALUE = ""
+    def get_value(self):
+        # TODO: fix API
+        # WARNING: get_value returns tjp value
+        return to_tj3time(self.value)
+
 class JugglerTaskEffort(JugglerTaskProperty):
     '''Class for the effort (estimate) of a juggler task'''
 

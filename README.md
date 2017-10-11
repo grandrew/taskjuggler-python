@@ -8,7 +8,47 @@ Life is dynamic and ever-changing. While there is no need to strictly follow the
 
 # Overview
 
-`python_taskjuggler` module provides Python interfaces to TaskJuggler 3 planner and an example command line utility that shows how to create interfaces to APIs (currently only airtable. jira, trello are planned).
+`python_taskjuggler` module provides python interfaces to TaskJuggler 3 planner.
+
+The project is still work in progress and currently supports:
+
+- generating taskjuggler project file
+- runnig the planner
+- importing task bookings
+- working with single default resource `"me"`
+
+The package comes with an example command line utility `tjp-client` that provides automatic planning for
+tasks defined as records in [airtable](https://airtable.com) table. 
+Working with google sheets, jira, trello and others could be implemented the same way.
+
+The utility allows to immediately re-schedule to reflect any changes to the plans that may arise due to new fixed appointments, dependencies, priority amendments or required efforts re-evaluation.
+
+## Command-line utility usage:
+
+### Overview
+
+```
+$ tjp-client -a airtable -k <airtable_api_key> -b <airtable_database> -t <table_name> -v <view_name>
+```
+
+### Preparation
+
+1. Create an [airtable](https://airtable.com) table with the following fields (case sensitive): 
+
+ ```
+    1. id
+    2. summary
+    3. effort
+    4. priority
+    5. depends
+    6. booking 
+```
+2. Get `API key`, `database ID`, note your `table name` and `view name`
+3. Execute in terminal:
+
+```sh
+$ tjp-client -a airtable -k keyAnIuVcuhhkeAkc -b appA8ZtLosVV7HGXy -t Tasks -v Work
+```
 
 # Setup
 
@@ -84,6 +124,38 @@ $ python
     }
 ]
 ```
+
+## Python interface usage example
+
+As an example, let's create interface to automatically schedule tasks that are defined as airtable records
+using [Airtable API wrapper](https://github.com/gtalarico/airtable-python-wrapper):
+
+We are using the fact that airtable's API already emits nicely formatted JSON in `fields` field. 
+We only have to name the table columns with correct field names that [jsonjuggler](https://github.com/grandrew/taskjuggler-python/blob/master/taskjuggler_python/jsonjuggler.py) example wrapper expects
+
+```python
+from airtable import Airtable
+from taskjuggler_python import juggler, jsonjuggler
+
+airtable = Airtable("appA8ZtLosVV7HGXy", "Tasks", api_key="keyAnIuVcuhhkeAkc")
+
+# use DictJuggler example wrapper from jsonjuggler module, directly feed what the API emits in "fields"
+JUGGLER = jsonjuggler.DictJuggler([x["fields"] for x in airtable.get_all(view="Work")])
+
+# run taskjuggler and calculate bookings
+JUGGLER.run() 
+
+# walk through all tasks objects
+for t in JUGGLER.walk(juggler.JugglerTask): 
+    airtable.update_by_field("id", t.get_id(), 
+        {"booking": t.walk(juggler.JugglerBooking)[0].decode()[0].isoformat()})
+# the last line finds first booking in this task, decodes it to datatime list and encodes to isoformat
+```
+
+After executing this code you should have time assigned to all of your tasks, none of them overlapping,
+respecting dependencies, taking into account default time shifts, appointments and no overwork allowed.
+
+## Writing your own interface
 
 See code for more examples of how to use the interfaces.
 

@@ -12,6 +12,7 @@ python_version = "2.7"
 # testpackage = "*"
 icalendar = "~=3.11"
 airtable-python-wrapper = "*"
+python-dateutil = "*"
 
 [dev-packages]
 
