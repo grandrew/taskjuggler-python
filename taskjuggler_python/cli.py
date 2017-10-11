@@ -42,7 +42,7 @@ def main(feet=None):
 
     JUGGLER = GenericJuggler()
 
-    JUGGLER.juggle(ARGS.output)
+    JUGGLER.juggle()
 
 
 if __name__ == '__main__':  # pragma: no cover
