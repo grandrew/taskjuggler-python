@@ -13,6 +13,7 @@ Python interfaces to TaskJuggler 3 planner
 ## Requirements
 
 * Python 2.7+
+* TaskJuggler 3.6+
 
 ## Installation
 
@@ -28,6 +29,12 @@ or directly from the source code:
 $ git clone https://github.com/grandrew/taskjuggler-python.git
 $ cd taskjuggler-python
 $ python setup.py install
+```
+
+Install TaskJuggler with gem:
+
+```sh
+$ gem install taskjuggler
 ```
 
 # Usage
