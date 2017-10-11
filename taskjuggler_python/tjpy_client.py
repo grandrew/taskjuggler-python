@@ -71,8 +71,8 @@ def main():
         if ['appointment'] in rec:
             rec['start'] = rec['appointment']
     
-    # TODO HERE: set project start date to today!
     JUGGLER = DictJuggler(data)
+    JUGGLER.walk(juggler.JugglerProject)[0].set_interval(datetime.datetime.now())
     JUGGLER.run()
     
     for t in JUGGLER.walk(juggler.JugglerTask):
