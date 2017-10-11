@@ -67,6 +67,7 @@ $ python
 
 ## General enhancements
 
+- Enable pylint with configuration that allows the check to pass (pylint.ini)
 - Loading scheduling results
     - export back to json
 - Make ID management transparent in the API

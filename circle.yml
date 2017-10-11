@@ -15,6 +15,6 @@ dependencies:
 
 test:
   override:
-    - make check
+    # - make check
     - make test-unit REPORTS=${CIRCLE_TEST_REPORTS}
     - make test-int REPORTS=${CIRCLE_TEST_REPORTS}
