@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "f9d880004d7f6d2330f2a6a9ebcefae81203a663d128e73db3e8dffa30e61179"
+            "sha256": "30ed9406447ea02d02ff122ae9e6e0a90b8d09fed1bc4337e760c5250806f23b"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -125,7 +125,6 @@
                 "sha256:4ba998e881f285c1d1b73f5b6e3766539b4e162320f9589334400c5ddc35198c",
                 "sha256:31f235852f88edc1558d428d890663c49eb4514ffec9f3650e7f3c9e4a12e36f"
             ],
-            "markers": "python_version < '3.3'",
             "version": "==1.4"
         },
         "backports.shutil-get-terminal-size": {
@@ -505,7 +504,6 @@
                 "sha256:833b46966687b3de7f438c761ac475213e53b306740f1abfaa86e1d1aae56aa8",
                 "sha256:5b06af87df13818d14f08a028e42f566640aef80805c3b50c5056b086e3c2b9c"
             ],
-            "markers": "python_version < '3.4'",
             "version": "==3.4.0.3"
         },
         "six": {

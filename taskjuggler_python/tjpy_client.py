@@ -68,7 +68,7 @@ def main():
         else:
             pri = preference + 100000 # low
         rec["priority"] = pri
-        if ['appointment'] in rec:
+        if 'appointment' in rec:
             rec['start'] = rec['appointment']
     
     JUGGLER = DictJuggler(data)
