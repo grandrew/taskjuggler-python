@@ -59,17 +59,3 @@ def main():
     
 if __name__ == '__main__':  # pragma: no cover
     main()
-
-
-#  {u'createdTime': u'2017-09-12T21:15:44.000Z',
-#   u'fields': {u'APTDFF': u'inf',
-#   u'ApHrsLeft': 99999,
-#   u'Name': u'what to do in case of crash? new fund?',
-#   u'Notes': u'invent a way to restart the fund',
-#   u'Project': [u'recgvmfpkHpnT3PiO'],
-#   u'Time track': 0,
-#   u'effort': 0.5,
-#   u'id': 67,
-#   u'preference': 1000,
-#   u'priority': u'Low'},
-#   u'id': u'reczLPoGiWmgxN5nA'}]
