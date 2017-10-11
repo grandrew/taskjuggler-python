@@ -2,6 +2,12 @@
 from juggler import *
 import json
 
+def id_encode(id):
+    return "id%s" % id
+    
+def id_decode(e_id):
+    return int(e_id[2:])
+
 class DictJugglerTaskDepends(JugglerTaskDepends):
     def load_from_issue(self, issue):
         """
@@ -25,12 +31,11 @@ class DictJugglerTask(JugglerTask):
         self.set_property(DictJugglerTaskEffort(issue))
         self.set_property(DictJugglerTaskAllocate(issue))
     def load_from_issue(self, issue):
-        self.set_id(to_identifier(issue["id"])) # TODO HERE: bi-directional ID decoder!
+        self.set_id(id_encode(issue["id"])) # TODO: deal with IDs internally, remove this
         if "summary" in issue: self.summary = issue["summary"]
 
 class DictJuggler(GenericJuggler):
     """ a simple dictionary based format parser """
-    # TODO HERE: configure and test allocations
     def __init__(self, issues):
         self.issues = issues
     def load_issues(self):
@@ -43,5 +48,9 @@ class JsonJuggler(DictJuggler):
         self.issues = json.loads(json_issues)
     def toJSON(self):
         # TODO HERE: decode tasks back to JSON
-        pass
+        for t in self.walk(JugglerTask):
+            for i in self.issues:
+                if id_decode(t.get_id()) == i["id"]:
+                    i["booking"] = t.walk(JugglerBooking)[0].decode()[0].isoformat()
+        return json.dumps(self.issues, sort_keys=True, indent=4, separators=(',', ': '))
 

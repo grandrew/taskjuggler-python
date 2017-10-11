@@ -2,7 +2,8 @@
 
 **The MIT License (MIT)**
 
-Copyright &copy; 2017, Andrew Gryaznov
+Copyright &copy; 2017, Andrew Gryaznov <realgrandrew@gmail.com>
+Copyright &copy; 2017, Stein Heselmans <stein.heselmans@gmail.com>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

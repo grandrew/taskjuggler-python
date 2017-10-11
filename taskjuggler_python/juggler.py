@@ -343,6 +343,9 @@ class JugglerCompoundKeyword(object):
     def set_id(self, id):
         self.id = to_identifier(id)
     
+    def decode(self):
+        return self.option2
+    
     def walk(self, cls, ls = None):
         if ls is None: ls = []
         for key, item in self.properties.items():
@@ -378,6 +381,9 @@ class JugglerSimpleProperty(JugglerCompoundKeyword):
         
     def get_name(self):
         return self.keyword
+    
+    def decode(self):
+        return self.id
     
     def get_value(self):
         return self.id
@@ -477,7 +483,10 @@ class JugglerBooking(JugglerCompoundKeyword):
         self.start = start
         self.end = end
         self.option2 = to_tj3interval(self.start, self.end)
-        
+    
+    def decode(self):
+        return [self.start, self.end]
+    
     def load_from_issue(self, issue = None):
         start = issue["start"]
         end = issue["end"]

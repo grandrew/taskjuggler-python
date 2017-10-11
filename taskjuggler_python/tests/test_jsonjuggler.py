@@ -60,3 +60,22 @@ icalreport "calendar"'''
         expect(len(tasks)) == 2
         
         expect(tasks[0].walk(juggler.JugglerBooking)[0].start) == datetime.datetime(2017, 10, 10, 11, 0, tzinfo=pytz.utc)
+        
+        expect(jg.toJSON()) == """[
+    {
+        "allocate": "me",
+        "booking": "2017-10-10T11:00:00+00:00",
+        "depends": [
+            1
+        ],
+        "effort": 1.2,
+        "id": 2
+    },
+    {
+        "allocate": "me",
+        "booking": "2017-10-10T08:00:00+00:00",
+        "effort": 3,
+        "id": 1,
+        "summary": "test"
+    }
+]"""

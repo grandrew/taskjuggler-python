@@ -1,5 +1,9 @@
 Unix: [![Unix Build Status](https://img.shields.io/travis/grandrew/taskjuggler-python/master.svg)](https://travis-ci.org/grandrew/taskjuggler-python) Windows: [![Windows Build Status](https://img.shields.io/appveyor/ci/grandrew/taskjuggler-python/master.svg)](https://ci.appveyor.com/project/grandrew/taskjuggler-python)<br>Metrics: [![Coverage Status](https://img.shields.io/coveralls/grandrew/taskjuggler-python/master.svg)](https://coveralls.io/r/grandrew/taskjuggler-python) [![Scrutinizer Code Quality](https://img.shields.io/scrutinizer/g/grandrew/taskjuggler-python.svg)](https://scrutinizer-ci.com/g/grandrew/taskjuggler-python/?branch=master)<br>Usage: [![PyPI Version](https://img.shields.io/pypi/v/taskjuggler_python.svg)](https://pypi.python.org/pypi/taskjuggler_python)
 
+# Rationale
+
+It's 2017 and still most of the tasks/project management tools lack support for any means of automated planning. This library helps to integrate automated planner that's been available for over a decade, with a shot of suporting different back-ends.
+
 # Overview
 
 Python interfaces to TaskJuggler 3 planner
@@ -58,6 +62,7 @@ $ python
 
 - Loading scheduling results
     - export back to json
+- Make ID management transparent in the API
 - Extensive testing including safe strings checks
 - TaskJuggler task identifier full path, subtask and validation
 - Bookings and timesheets support
