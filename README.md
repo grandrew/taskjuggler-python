@@ -100,7 +100,7 @@ The minimal invocation will look like:
 >>> from taskjuggler_python import juggler
 >>> jg = juggler.GenericJuggler()
 >>> t = juggler.JugglerTask()
->>> t.set_property(juggler.JugglerTaskEffort(1))
+>>> t.set_property(juggler.JugglerTaskEffort(1)) # hours by default
 >>> jg.add_task(t)
 >>> jg.run()
 >>> t.walk(juggler.JugglerBooking)[0].decode()

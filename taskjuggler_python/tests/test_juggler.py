@@ -36,7 +36,7 @@ def describe_JugglerSource():
         s.walk(juggler.JugglerProject)[0].set_interval(datetime.datetime(2017, 10, 10), datetime.datetime(2035,10,10))
         t = juggler.JugglerTask()
         s.set_property(t)
-        expect(str(s)) == juggler.JugglerSource.COMMENTS_HEADER + '\n \nproject default "Default Project" 2017-10-10-00:00:00 - 2035-10-10-00:00:00  {\n\ntimezone "Europe/Dublin"\noutputdir "REPORT"\n}\nresource me "Default Resource"\nicalreport "calendar"\ntask unknown_task "Task is not initialized" {\n    allocate me\n    effort 1d\n\n}'
+        expect(str(s)) == juggler.JugglerSource.COMMENTS_HEADER + '\n \nproject default "Default Project" 2017-10-10-00:00:00 - 2035-10-10-00:00:00  {\n\ntimezone "Europe/Dublin"\noutputdir "REPORT"\n}\nresource me "Default Resource"\nicalreport "calendar"\ntask unknown_task "Task is not initialized" {\n    allocate me\n    effort 1h\n\n}'
 
 def describe_JugglerTaskPriority():
     p = juggler.JugglerTaskPriority()

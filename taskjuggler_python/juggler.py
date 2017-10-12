@@ -818,7 +818,7 @@ class GenericJuggler(object):
         
     def clean(self):
         "clean after running"
-        if DEBUG logging.getLogger().getEffectiveLevel() == logging.DEBUG: return
+        if DEBUG or logging.getLogger().getEffectiveLevel() == logging.DEBUG: return
         try: shutil.rmtree(self.outfolder)
         except:  pass
         try: os.remove(self.infile)
