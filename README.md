@@ -227,3 +227,7 @@ See code for more examples of how to use the interfaces.
 ## Thoughts
 
 - Use logging to predict average performance per day
+- Create a universal API middleware with human interface to help with life planning and performance measurements
+    - Solve more advanded problems 
+        - like "allocate some time during the day to low-priority tasks if no critical-priority task exist"
+        - or "adjust (increase) priority of low-priority tasks according to their age"

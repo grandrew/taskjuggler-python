@@ -33,14 +33,14 @@ def set_logging_level(loglevel):
     numeric_level = getattr(logging, loglevel.upper(), None)
     if not isinstance(numeric_level, int):
         raise ValueError('Invalid log level: %s' % loglevel)
-    logging.basicConfig(level=numeric_level)
+    logging.getLogger().setLevel(numeric_level)
     
 def to_tj3time(dt):
     """
     Convert python date or datetime object to TJ3 format
     
     """
-    return dt.isoformat().replace("T", "-").split(".")[0]
+    return dt.isoformat().replace("T", "-").split(".")[0].split("+")[0]
 
 def to_tj3interval(start, end):
     return "%s - %s" % (to_tj3time(start), to_tj3time(end))
@@ -469,8 +469,18 @@ class JugglerSimpleProperty(JugglerCompoundKeyword):
         if val or val == 0: self.id = repr(val).replace("'",'"')
     
 class JugglerTimezone(JugglerSimpleProperty):
+    '''
+    Sets the project timezone.
+    Default value is UTC.
+    
+    Supports all tzdata values, see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+    or https://stackoverflow.com/q/13866926
+    '''
     DEFAULT_NAME = 'timezone'
-    DEFAULT_VALUE = 'Europe/Dublin'
+    DEFAULT_VALUE = 'UTC'
+    # DEFAULT_VALUE = 'Europe/Dublin'
+    
+    # TODO: checks!
 
 class JugglerOutputdir(JugglerSimpleProperty):
     LOG_STRING = "outputdir property"
@@ -810,7 +820,7 @@ class GenericJuggler(object):
         icalreport[0].set_value(orig_cal)
         reportdir[0].set_value(orig_rep)
         
-        if DEBUG or logging.getLogger().getEffectiveLevel() == logging.DEBUG: return
+        if DEBUG or logging.getLogger().getEffectiveLevel() >= logging.DEBUG: return
         shutil.rmtree(self.outfolder)
         os.remove(self.infile)
         
@@ -818,7 +828,7 @@ class GenericJuggler(object):
         
     def clean(self):
         "clean after running"
-        if DEBUG or logging.getLogger().getEffectiveLevel() == logging.DEBUG: return
+        if DEBUG or logging.getLogger().getEffectiveLevel() >= logging.DEBUG: return
         try: shutil.rmtree(self.outfolder)
         except:  pass
         try: os.remove(self.infile)

@@ -23,7 +23,7 @@ def describe_JsonJuggler():
  
 project default "Default Project" 2017-10-10-00:00:00 - 2035-10-10-00:00:00  {
 
-timezone "Europe/Dublin"
+timezone "UTC"
 outputdir "REPORT"
 }
 resource me "Default Resource"
@@ -62,12 +62,12 @@ task tjp_numid_1 "test" {
         tasks = jg.walk(juggler.JugglerTask)
         expect(len(tasks)) == 2
         
-        expect(tasks[0].walk(juggler.JugglerBooking)[0].start) == datetime.datetime(2017, 10, 10, 11, 0, tzinfo=pytz.utc)
+        expect(tasks[0].walk(juggler.JugglerBooking)[0].start) == datetime.datetime(2017, 10, 10, 12, 0, tzinfo=pytz.utc)
         
         expect(jg.toJSON()) == """[
     {
         "allocate": "me",
-        "booking": "2017-10-10T11:00:00+00:00",
+        "booking": "2017-10-10T12:00:00+00:00",
         "depends": [
             1
         ],
@@ -76,7 +76,7 @@ task tjp_numid_1 "test" {
     },
     {
         "allocate": "me",
-        "booking": "2017-10-10T08:00:00+00:00",
+        "booking": "2017-10-10T09:00:00+00:00",
         "effort": 3,
         "id": 1,
         "summary": "test"

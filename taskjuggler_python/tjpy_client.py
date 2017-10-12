@@ -12,14 +12,11 @@ import juggler
 from airtable import Airtable
 
 DEFAULT_LOGLEVEL = 'warning'
-DEFAULT_OUTPUT = 'export.tjp'
+# DEFAULT_OUTPUT = 'export.tjp'
 log = logging.getLogger(__name__)
 
-
-# @click.argument('')
-# @click.command()
 def main():
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.WARN)
 
     ARGPARSER = argparse.ArgumentParser()
     ARGPARSER.add_argument('-l', '--loglevel', dest='loglevel', default=DEFAULT_LOGLEVEL,
@@ -40,6 +37,9 @@ def main():
     ARGPARSER.add_argument('-v', '--view', dest='view', default="",
                           action='store', required=True,
                           help='Specify Table View where appropriate (e.g. -v Work)')
+    ARGPARSER.add_argument('--dry-run', dest='dryrun', default=False,
+                          action='store_true', required=False,
+                          help='Do not commit calculation results')
     # ARGPARSER.add_argument('-o', '--output', dest='output', default=DEFAULT_OUTPUT,
     #                       action='store', required=False,
     #                       help='Output .tjp file for task-juggler')
@@ -70,12 +70,14 @@ def main():
         rec["priority"] = pri
         if 'appointment' in rec:
             rec['start'] = rec['appointment']
+            del rec["priority"] # tasks scheduling is not guaranteed if priority is set
         if 'depends' in rec:
             rec['depends'] = [int(x) for x in re.findall(r"[\w']+", rec["depends"])]
     
     JUGGLER = DictJuggler(data)
     JUGGLER.run()
-    return
+    
+    if ARGS.dryrun: return
     
     for t in JUGGLER.walk(juggler.JugglerTask):
         airtable.update_by_field("id", t.get_id(), {"booking": t.walk(juggler.JugglerBooking)[0].decode()[0].isoformat()})
