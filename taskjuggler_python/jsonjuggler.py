@@ -10,9 +10,11 @@ class DictJugglerTaskDepends(JugglerTaskDepends):
             issue["depends"] - a list of identifiers that this task depends on
         """
         if "depends" in issue: 
-            if isinstance(issue["depends"], str):
-                self.set_value([x for x in re.findall(r"[\w']+", issue["depends"])])
-            else: self.set_value([x for x in issue["depends"]])
+            # TODO HERE: remove ID normalization!
+            if isinstance(issue["depends"], str) or isinstance(issue['depends'], unicode):
+                self.set_value([int(x) for x in re.findall(r"[\w']+", issue["depends"])])
+            # TODO check for list, else add idfr
+            else: self.set_value([int(x) for x in issue["depends"]])
 class DictJugglerTaskPriority(JugglerTaskPriority):
     def load_from_issue(self, issue):
         if "priority" in issue: self.set_value(int(issue["priority"]))
