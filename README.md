@@ -6,6 +6,9 @@ It's 2017 and still most of the tasks/project management tools lack support for 
 
 Life is dynamic and ever-changing. While there is no need to strictly follow the plans, a dynamically recalculating schedule will definitely help to keep up with the pace :-)
 
+- Current focus is on personal planning
+- Zero-configuration is required to start
+
 # Overview
 
 `python_taskjuggler` module provides python interfaces to TaskJuggler 3 planner.
@@ -81,7 +84,11 @@ $ gem install taskjuggler
 
 # Usage
 
-After installation, the package can imported:
+## Simplest use case:
+
+
+
+## JSON tasks loading:
 
 ```sh
 $ python

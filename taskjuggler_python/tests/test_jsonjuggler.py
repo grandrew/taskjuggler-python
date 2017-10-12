@@ -17,9 +17,10 @@ def describe_JsonJuggler():
     def when_json():
         jj = jsonjuggler.JsonJuggler(json_test_tasks)
         jj.juggle()
+        jj.walk(juggler.JugglerProject)[0].set_interval(datetime.datetime(2017, 10, 10), datetime.datetime(2035,10,10))
         expect(str(jj.write_file())) == juggler.JugglerSource.COMMENTS_HEADER + '''
  
-project default "Default Project" 2017-10-10 - 2035-10-10  {
+project default "Default Project" 2017-10-10-00:00:00 - 2035-10-10-00:00:00  {
 
 timezone "Europe/Dublin"
 outputdir "REPORT"
@@ -52,6 +53,7 @@ task tjp_numid_1 "test" {
         
     def when_full_workflow():
         jg = jsonjuggler.JsonJuggler(json_test_tasks)
+        jg.walk(juggler.JugglerProject)[0].set_interval(datetime.datetime(2017, 10, 10))
         # jg.juggle()
         jg.run()
         # d = dict(jg)

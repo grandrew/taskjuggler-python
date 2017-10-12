@@ -74,9 +74,6 @@ def main():
             rec['depends'] = [int(x) for x in re.findall(r"[\w']+", rec["depends"])]
     
     JUGGLER = DictJuggler(data)
-    JUGGLER.juggle() # TODO this should run automatically
-    # TODO interval is not a good name? ->
-    JUGGLER.walk(jugglerJugglerProject)[0].set_interval(datetime.datetime.now().replace(microsecond=0,second=0,minute=0))
     JUGGLER.run()
     
     for t in JUGGLER.walk(juggler.JugglerTask):

@@ -541,14 +541,13 @@ class JugglerProject(JugglerCompoundKeyword):
     DEFAULT_KEYWORD = 'project'
     DEFAULT_ID = "default" # id may be empty for some keywords
     DEFAULT_SUMMARY = 'Default Project' # no summary is possible everywhere
-    DEFAULT_INTERVAL = "2017-10-10 - 2035-10-10"
     
     def load_default_properties(self, issue = None):
         self.set_property(JugglerTimezone())
         self.set_property(JugglerOutputdir())
-        self.option2 = self.DEFAULT_INTERVAL
+        self.set_interval()
     
-    def set_interval(self, start, end = datetime.datetime(2035, 1, 1)):
+    def set_interval(self, start = datetime.datetime.now().replace(microsecond=0,second=0,minute=0), end = datetime.datetime(2035, 1, 1)):
         self.option2 = to_tj3interval(start, end)
         
 
@@ -686,6 +685,9 @@ class GenericJuggler(object):
             output (str): Name of output file, for task-juggler
         '''
         
+        if not self.src:
+            self.juggle()
+            
         s = str(self.src)
         
         if output and isinstance(output, str):
@@ -700,7 +702,7 @@ class GenericJuggler(object):
     def read_ical_result(self, icalfile):
         tasks = self.src.walk(JugglerTask)
         cal = icalendar.Calendar.from_ical(file(icalfile).read())
-        for ev in cal.walk('VEVENT'):
+        for ev in cal.walk('VEVENT'): # pylint:disable=no-member
             start_date = ev.decoded("DTSTART")
             end_date = ev.decoded("DTEND")
             id = from_identifier(ev.decoded("UID").split("-")[1])
@@ -769,6 +771,8 @@ class GenericJuggler(object):
         raise NotImplementedError
     
     def walk(self, cls):
+        if not self.src:
+            self.juggle()
         return self.src.walk(cls)
     
     def __inter__(self):
