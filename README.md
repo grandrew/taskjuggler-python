@@ -4,6 +4,8 @@ Unix: [![Unix Build Status](https://img.shields.io/travis/grandrew/taskjuggler-p
 
 It's **[whatever current year]** and still most of the tasks/project management tools lack support for any means of automated planning. This library helps to integrate automated planner that's been available for over a decade, with a shot of suporting different front-ends, complex scheduling strategies and potentially different planners.
 
+![image](assets/plan_logic.png)
+
 Realize your craziest time management dreams!
 
 - Current focus is on personal planning and small teams (hence no support for multiple resource yet)
