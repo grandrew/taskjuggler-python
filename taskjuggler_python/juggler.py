@@ -234,7 +234,7 @@ class JugglerTaskEffort(JugglerTaskProperty):
     '''Class for the effort (estimate) of a juggler task'''
 
     #For converting the seconds (generic) to days
-    UNIT = 'd'
+    UNIT = 'h'
 
     DEFAULT_NAME = 'effort'
     MINIMAL_VALUE = 1 # TODO: should be project resolution, add check
