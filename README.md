@@ -39,9 +39,10 @@ $ tjp-client -a airtable -k <airtable_api_key> -b <airtable_database> -t <table_
 
 ### Preparation
 
-1. Create an [airtable](https://airtable.com) database with table named "Tasks" with the following columns (**case sensitive**): 
+1. Create an [airtable](https://airtable.com) database by copying [this example base](https://airtable.com/shrivEunRhLcBm79R) or create a new database with table named "Tasks" with the following columns (**case sensitive**): 
 
- ```
+```
+
 1. id           - the integer (number) field used as task ID. "Auto Number" type recommended.
 2. summary      - single line text: task summary / title
 3. effort       - integer number: task effort duration measured in hours. Default value of 1 recommended
@@ -55,6 +56,7 @@ $ tjp-client -a airtable -k <airtable_api_key> -b <airtable_database> -t <table_
 Other columns are just ignored.
 
 You can add nice calculations to the table like time difference between deadline and calculated booking.
+
 ```
 2. Create a view called `Work` with all the tasks with status "Done" filtered out *(it is left as an exercize for the reader to create a new column and a filter for it)*
 3. Create a calendar view with `booking` field
