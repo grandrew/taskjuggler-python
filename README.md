@@ -1,5 +1,7 @@
 Unix: [![Unix Build Status](https://img.shields.io/travis/grandrew/taskjuggler-python/master.svg)](https://travis-ci.org/grandrew/taskjuggler-python) Windows: [![Windows Build Status](https://img.shields.io/appveyor/ci/grandrew/taskjuggler-python/master.svg)](https://ci.appveyor.com/project/grandrew/taskjuggler-python)<br>Metrics: [![Coverage Status](https://img.shields.io/coveralls/grandrew/taskjuggler-python/master.svg)](https://coveralls.io/r/grandrew/taskjuggler-python) [![Scrutinizer Code Quality](https://img.shields.io/scrutinizer/g/grandrew/taskjuggler-python.svg)](https://scrutinizer-ci.com/g/grandrew/taskjuggler-python/?branch=master)<br>Usage: [![PyPI Version](https://img.shields.io/pypi/v/taskjuggler_python.svg)](https://pypi.python.org/pypi/taskjuggler_python)
 
+![image](assets/at_example.gif)
+
 # Rationale
 
 It's **[whatever current year]** and still most of the tasks/project management tools lack support for any means of automated planning. This library helps to integrate automated planner that's been available for over a decade, with a shot of suporting different front-ends, complex scheduling strategies and potentially different planners.
@@ -45,7 +47,7 @@ $ tjp-client -a airtable -k <airtable_api_key> -b <airtable_database> -t <table_
     1. id           - the integer (number) field used as task ID. "Auto Number" type recommended.
     2. summary      - single line text: task summary / title
     3. effort       - integer number: task effort duration measured in hours. Default value of 1 recommended
-    4. priority     - multiple select: field with values "CRITICAL", "High", "Low", "info"
+    4. priority     - single select: field with values "CRITICAL", "High", "Low", "info"
     5. preference   - integer number: optional additional number 0-99 for higher granularity of priorities
     6. depends      - single line text: with dependencies listed as id's, like: 2,3,4
     7. appointment  - date field with time: the fixed tasks or appointments that can not be moved
