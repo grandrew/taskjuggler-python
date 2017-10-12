@@ -498,7 +498,7 @@ class JugglerTask(JugglerCompoundKeyword):
     def load_default_properties(self, issue = None):
         if not issue:
             self.set_property(JugglerTaskAllocate("me"))
-            # self.set_property(JugglerTaskEffort(1))
+            self.set_property(JugglerTaskEffort(1))
         else:
             self.set_property(JugglerTaskAllocate(issue))
             self.set_property(JugglerTaskEffort(issue))
