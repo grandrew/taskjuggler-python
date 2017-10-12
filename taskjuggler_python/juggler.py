@@ -251,7 +251,8 @@ class JugglerTaskEffort(JugglerTaskProperty):
         Args:
             issue (class): The generic issue to load from
         '''
-        self.set_value(self.DEFAULT_VALUE)
+        if issue: self.set_value(issue)
+        else: self.set_value(self.DEFAULT_VALUE)
     def set_value(self, value):
         '''
         Set the value for effort. Will convert whatever number to integer.
