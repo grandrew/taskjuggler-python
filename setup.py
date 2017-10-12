@@ -73,5 +73,8 @@ setuptools.setup(
     install_requires=[
         # TODO: Add your library's requirements here
         # "testpackage ~= 2.26",
+        "icalendar>=3.11",
+        "airtable-python-wrapper>=0.8",
+        "python-dateutil>=2.6"
     ]
 )

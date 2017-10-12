@@ -2,8 +2,6 @@
 
 import logging
 
-import click
-
 from getpass import getpass
 import argparse, sys, datetime
 from jsonjuggler import *
