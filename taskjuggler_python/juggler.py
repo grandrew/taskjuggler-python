@@ -201,9 +201,20 @@ class JugglerTaskPriority(JugglerTaskProperty):
 class JugglerTaskStart(JugglerTaskProperty):
     DEFAULT_NAME = "start"
     DEFAULT_VALUE = ""
+    
+    def set_value(self, dt):
+        if not dt: 
+            self.value = ""
+            return
+        if not isinstance(dt, datetime.datetime):
+            raise ValueError("Task start value should be datetime object")
+        self.value = dt
+    
     def get_value(self):
         # TODO: fix API
         # WARNING: get_value returns tjp value
+        if not self.value:
+            return ""
         return to_tj3time(self.value)
 
 class JugglerTaskEffort(JugglerTaskProperty):

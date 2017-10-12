@@ -15,13 +15,18 @@ class DictJugglerTaskDepends(JugglerTaskDepends):
                 self.set_value([int(x) for x in re.findall(r"[\w']+", issue["depends"])])
             # TODO check for list, else add idfr
             else: self.set_value([int(x) for x in issue["depends"]])
+
 class DictJugglerTaskPriority(JugglerTaskPriority):
     def load_from_issue(self, issue):
         if "priority" in issue: self.set_value(int(issue["priority"]))
         
 class DictJugglerTaskStart(JugglerTaskStart):
     def load_from_issue(self, issue):
-        if "start" in issue: self.set_value(dateutil.parser.parse(issue["start"]))
+        if "start" in issue: 
+            if isinstance(issue["start"], str):
+                self.set_value(dateutil.parser.parse(issue["start"]))
+            else:
+                self.set_value(issue["start"])
         
 class DictJugglerTaskEffort(JugglerTaskEffort):
     UNIT = "h"
@@ -38,6 +43,8 @@ class DictJugglerTask(JugglerTask):
         self.set_property(DictJugglerTaskDepends(issue))
         self.set_property(DictJugglerTaskEffort(issue))
         self.set_property(DictJugglerTaskAllocate(issue))
+        self.set_property(DictJugglerTaskStart(issue))
+        self.set_property(DictJugglerTaskPriority(issue))
     def load_from_issue(self, issue):
         self.set_id(issue["id"])
         if "summary" in issue: self.summary = issue["summary"]

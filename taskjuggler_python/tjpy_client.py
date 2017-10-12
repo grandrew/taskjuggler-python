@@ -58,15 +58,15 @@ def main():
             preference = int(rec['preference'])
         if "priority" in rec:
             if rec["priority"] == "Low":
-                pri = preference + 100000
+                pri = preference + 100
             elif rec["priority"] == "High":
-                pri = preference + 200000
+                pri = preference + 200
             elif rec["priority"] == "CRITICAL":
-                pri = preference + 300000
+                pri = preference + 300
             else:
-                pri = 0
+                pri = 1
         else:
-            pri = preference + 100000 # low
+            pri = preference + 100 # low
         rec["priority"] = pri
         if 'appointment' in rec:
             rec['start'] = rec['appointment']
