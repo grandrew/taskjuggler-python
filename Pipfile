@@ -37,6 +37,8 @@ coverage = "~=4.0"
 mkdocs = "*"
 docutils = "*"
 pygments = "*"
+backports-abc = "~=0.5"
+"backports.ssl_match_hostname" = "*"
 
 # Build
 wheel = "*"

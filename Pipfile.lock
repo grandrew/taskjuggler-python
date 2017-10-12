@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "30ed9406447ea02d02ff122ae9e6e0a90b8d09fed1bc4337e760c5250806f23b"
+            "sha256": "f26809bd493d559c602857f0ae3ace4ad31862154fe765726fc6497fe26d707a"
         },
         "host-environment-markers": {
             "implementation_name": "cpython",
@@ -120,11 +120,19 @@
             ],
             "version": "==1.5.3"
         },
+        "backports-abc": {
+            "hashes": [
+                "sha256:52089f97fe7a9aa0d3277b220c1d730a85aefd64e1b2664696fe35317c5470a7",
+                "sha256:033be54514a03e255df75c5aee8f9e672f663f93abb723444caec8fe43437bde"
+            ],
+            "version": "==0.5"
+        },
         "backports.functools-lru-cache": {
             "hashes": [
                 "sha256:4ba998e881f285c1d1b73f5b6e3766539b4e162320f9589334400c5ddc35198c",
                 "sha256:31f235852f88edc1558d428d890663c49eb4514ffec9f3650e7f3c9e4a12e36f"
             ],
+            "markers": "python_version == '2.7'",
             "version": "==1.4"
         },
         "backports.shutil-get-terminal-size": {
@@ -133,6 +141,12 @@
                 "sha256:713e7a8228ae80341c70586d1cc0a8caa5207346927e23d09dcbcaf18eadec80"
             ],
             "version": "==1.0.0"
+        },
+        "backports.ssl-match-hostname": {
+            "hashes": [
+                "sha256:502ad98707319f4a51fa2ca1c677bd659008d27ded9f6380c79e8932e38dcdf2"
+            ],
+            "version": "==3.5.0.1"
         },
         "certifi": {
             "hashes": [
@@ -166,6 +180,7 @@
             "hashes": [
                 "sha256:5308b47021bc2340965c371f0f058cc6971a04502638d4244225c49d80db273a"
             ],
+            "markers": "python_version == '2.7'",
             "version": "==3.5.0"
         },
         "coverage": {
@@ -504,6 +519,7 @@
                 "sha256:833b46966687b3de7f438c761ac475213e53b306740f1abfaa86e1d1aae56aa8",
                 "sha256:5b06af87df13818d14f08a028e42f566640aef80805c3b50c5056b086e3c2b9c"
             ],
+            "markers": "python_version < '3.4'",
             "version": "==3.4.0.3"
         },
         "six": {
