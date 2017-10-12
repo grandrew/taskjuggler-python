@@ -11,9 +11,9 @@ Life is dynamic and ever-changing. While there is no need to strictly follow the
 
 # Overview
 
-`python_taskjuggler` module provides python interfaces to TaskJuggler 3 planner.
+`python_taskjuggler` module provides python interfaces to TaskJuggler 3 planner. It is a set of base classes that provide the objects that TaskJuggler internally uses. The module comes with example implementation of JSON project description parser.
 
-The project is still work in progress and currently supports:
+It is still work in progress and currently supports:
 
 - generating taskjuggler project file
 - runnig the planner
@@ -22,7 +22,7 @@ The project is still work in progress and currently supports:
 
 The package comes with an example command line utility `tjp-client` that provides automatic planning for
 tasks defined as records in [airtable](https://airtable.com) table. 
-Working with google sheets, jira, trello and others could be implemented the same way.
+Working with google sheets, jira, trello, todoist, smartsheet and others could be implemented the same way.
 
 The utility allows to immediately re-schedule to reflect any changes to the plans that may arise due to new fixed appointments, dependencies, priority amendments or required efforts re-evaluation.
 
