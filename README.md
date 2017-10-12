@@ -47,10 +47,12 @@ $ tjp-client -a airtable -k <airtable_api_key> -b <airtable_database> -t <table_
     5. preference   - integer number: optional additional number 0-99 for higher granularity of priorities
     6. depends      - single line text: with dependencies listed as id's, like: 2,3,4
     7. appointment  - date field with time: the fixed tasks or appointments that can not be moved
-    8. deadline     - the desired deadline value. Current strategy will use it to emphasize priority if missed.
-    9. booking      - this is where output will be written to. Sort your table by this column
-    
-You can add other nice calculations to the table like time difference between deadline and calculated booking.
+    8. deadline     - date: the desired deadline value. Current strategy will use it to emphasize priority if missed.
+    9. booking      - date+time: this is where output will be written to. Sort your table by this column
+
+Other columns are just ignored.
+
+You can add nice calculations to the table like time difference between deadline and calculated booking.
 ```
 2. Create a view called `Work` with all the tasks with status "Done" filtered out *(it is left as an exercize for the reader to create a new column and a filter for it)*
 3. Create a calendar view with `booking` field
