@@ -74,6 +74,12 @@ Now try changing priorities, adding appointments and re-scheduling the plan.
 
 ## Installation
 
+Install TaskJuggler with gem:
+
+```sh
+$ gem install taskjuggler
+```
+
 Install taskjuggler_python with pip:
 
 ```sh
@@ -88,11 +94,6 @@ $ cd taskjuggler-python
 $ python setup.py install
 ```
 
-Install TaskJuggler with gem:
-
-```sh
-$ gem install taskjuggler
-```
 
 # Usage
 
