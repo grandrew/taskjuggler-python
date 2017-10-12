@@ -2,11 +2,11 @@ Unix: [![Unix Build Status](https://img.shields.io/travis/grandrew/taskjuggler-p
 
 # Rationale
 
-It's 2017 and still most of the tasks/project management tools lack support for any means of automated planning. This library helps to integrate automated planner that's been available for over a decade, with a shot of suporting different back-ends.
+It's [whatever current year] and still most of the tasks/project management tools lack support for any means of automated planning. This library helps to integrate automated planner that's been available for over a decade, with a shot of suporting different back-ends.
 
 Life is dynamic and ever-changing. While there is no need to strictly follow the plans, a dynamically recalculating schedule will definitely help to keep up with the pace :-)
 
-- Current focus is on personal planning
+- Current focus is on personal planning and small teams (hence no support for multiple resource yet)
 - Zero-configuration is required to start
 
 # Overview
