@@ -89,7 +89,7 @@ class JugglerTaskProperty(object):
             issue (class): The generic issue to load from
             value (object): Value of the property
         '''
-        logging.info('Create %s', self.LOG_STRING)
+        logging.debug('Create %s', self.LOG_STRING)
         self.name = self.DEFAULT_NAME
         self.set_value(self.DEFAULT_VALUE)
         self.empty = False
@@ -365,7 +365,7 @@ class JugglerCompoundKeyword(object):
     ENCLOSED_BLOCK = True
 
     def __init__(self, issue=None):
-        logging.info('Create %s', self.LOG_STRING)
+        logging.debug('Create %s', self.LOG_STRING)
         self.empty = False
         self.parent = None
         self.keyword = self.DEFAULT_KEYWORD
