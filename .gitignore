@@ -49,3 +49,5 @@ Icon*
 
 # Eclipse
 .settings
+
+.pypirc

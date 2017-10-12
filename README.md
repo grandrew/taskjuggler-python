@@ -33,8 +33,6 @@ The utility allows to immediately re-schedule to reflect any changes to the plan
 
 ## Command-line utility usage:
 
-### Overview
-
 ```
 $ tjp-client -a airtable -k <airtable_api_key> -b <airtable_database> -t <table_name> -v <view_name>
 ```
