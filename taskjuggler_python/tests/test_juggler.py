@@ -41,3 +41,10 @@ def describe_JugglerTaskPriority():
     p = juggler.JugglerTaskPriority()
     p.set_value(100)
     expect(str(p)) == "    priority 100\n"
+
+
+def describe_JugglerTaskStart():
+    p = juggler.JugglerTaskStart()
+    d = datetime.datetime.now()
+    p.set_value(d)
+    expect(str(p)) == "    start "+juggler.to_tj3time(d)+"\n"
