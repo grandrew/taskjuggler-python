@@ -6,6 +6,7 @@ import datetime
 from expecter import expect
 
 from taskjuggler_python import juggler
+juggler.DEBUG = True
 
 def describe_to_identifier():
     def test_it():

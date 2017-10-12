@@ -97,18 +97,21 @@ Basic usage concepts include:
 The minimal invocation will look like:
 
 ```python
-from taskjuggler_python import JsonJuggler
-jg = GenericJuggler()
-t = juggler.JugglerTask()
-jg.add_task(t)
-jg.run()
+>>> from taskjuggler_python import juggler
+>>> jg = juggler.GenericJuggler()
+>>> t = juggler.JugglerTask()
+>>> t.set_property(juggler.JugglerTaskEffort(1))
+>>> jg.add_task(t)
+>>> jg.run()
+>>> t.walk(juggler.JugglerBooking)[0].decode()
+[datetime.datetime(2017, 10, 12, 13, 0, tzinfo=<UTC>), datetime.datetime(2017, 10, 12, 14, 0, tzinfo=<UTC>)]
 ```
 
 ## JSON tasks loading:
 
 ```sh
 $ python
->>> from taskjuggler_python import JsonJuggler
+>>> from taskjuggler_python import jsonjuggler
 >>> my_tasks = """[
   {
     "id": 2,
@@ -125,7 +128,7 @@ $ python
     "summary": "test"
   }
 ]"""
->>> jg = JsonJuggler(my_tasks)
+>>> jg = jsonjuggler.JsonJuggler(my_tasks)
 >>> jg.run()
 >>> jg.toJSON()
 [

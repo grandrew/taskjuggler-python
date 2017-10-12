@@ -14,6 +14,8 @@ DEFAULT_OUTPUT = 'export.tjp'
 
 TAB = ' ' * 4
 
+DEBUG = False
+
 def is_number(s):
     try:
         float(s)
@@ -799,25 +801,28 @@ class GenericJuggler(object):
         
         self.write_file(infile)
         
+        logging.debug("Running from %s to out %s" % (self.infile, self.outfolder))
+        
         subprocess.call(["/usr/bin/env", "tj3", infile])
         
         self.read_ical_result(ical_report_path+".ics")
         
-        # shutil.rmtree(self.outfolder)
-        # os.remove(self.infile)
         icalreport[0].set_value(orig_cal)
         reportdir[0].set_value(orig_rep)
         
+        if DEBUG or logging.getLogger().getEffectiveLevel() == logging.DEBUG: return
+        shutil.rmtree(self.outfolder)
+        os.remove(self.infile)
         
         # TODO HERE: load the ical file back to the actual tree (no tree support yet?)
         
     def clean(self):
         "clean after running"
-        # try: shutil.rmtree(self.outfolder)
-        # except:  pass
-        # try: os.remove(self.infile)
-        # except: pass
-        raise NotImplementedError
+        if DEBUG logging.getLogger().getEffectiveLevel() == logging.DEBUG: return
+        try: shutil.rmtree(self.outfolder)
+        except:  pass
+        try: os.remove(self.infile)
+        except: pass
     
     def walk(self, cls):
         if not self.src:

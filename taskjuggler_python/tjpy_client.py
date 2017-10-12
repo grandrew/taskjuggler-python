@@ -23,8 +23,8 @@ def main():
 
     ARGPARSER = argparse.ArgumentParser()
     ARGPARSER.add_argument('-l', '--loglevel', dest='loglevel', default=DEFAULT_LOGLEVEL,
-                          action='store', required=False,
-                          help='Level for logging (strings from logging python package: "warning", "info", "debug")')
+                          action='store', required=False, choices=["debug", "info", "warn", "error"],
+                          help='Level for logging (strings from logging python package: "warn", "info", "debug")')
     ARGPARSER.add_argument('-a', '--api', dest='api', default=None,
                           action='store', required=True, choices=['airtable'],
                           help='Execute specified API: only "airtable" is currently supported')

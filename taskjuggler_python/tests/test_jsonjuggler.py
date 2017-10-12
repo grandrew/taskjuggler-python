@@ -5,6 +5,7 @@ from expecter import expect
 
 from taskjuggler_python import jsonjuggler, juggler
 import json, datetime, pytz
+juggler.DEBUG = True
 
 def describe_DictJuggler():
 
