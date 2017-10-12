@@ -5,9 +5,11 @@ import logging
 import click
 
 from getpass import getpass
-import argparse, sys
+import argparse, sys, datetime
 from jsonjuggler import *
 import juggler
+
+import dateutil.parser
 
 from airtable import Airtable
 
@@ -57,11 +59,11 @@ def main():
         if "preference" in rec:
             preference = int(rec['preference'])
         if "priority" in rec:
-            if rec["priority"] == "Low":
+            if rec["priority"].lower() == "low":
                 pri = preference + 100
-            elif rec["priority"] == "High":
+            elif rec["priority"].lower() == "high":
                 pri = preference + 200
-            elif rec["priority"] == "CRITICAL":
+            elif rec["priority"].lower() == "critical":
                 pri = preference + 300
             else:
                 pri = 1
@@ -73,6 +75,11 @@ def main():
             del rec["priority"] # tasks scheduling is not guaranteed if priority is set
         if 'depends' in rec:
             rec['depends'] = [int(x) for x in re.findall(r"[\w']+", rec["depends"])]
+        if "priority" in rec and  "deadline" in rec and not rec["priority"] >= 300:
+            diff_days = (datetime.datetime.now() - dateutil.parser.parse(rec["deadline"])).days
+            if diff_days < 0: diff_days = 0
+            rec["priority"] = rec["priority"] + diff_days * 3
+            if rec["priority"] >= 250: rec["priority"] = 250
     
     JUGGLER = DictJuggler(data)
     JUGGLER.run()
