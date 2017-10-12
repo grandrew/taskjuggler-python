@@ -42,7 +42,14 @@ def describe_JugglerTaskPriority():
     p.set_value(100)
     expect(str(p)) == "    priority 100\n"
 
-
+def describe_GenericJuggler():
+    jg = juggler.GenericJuggler()
+    t = juggler.JugglerTask()
+    t.set_property(juggler.JugglerTaskEffort(1))
+    jg.add_task(t)
+    jg.run()
+    expect(len(jg.walk(juggler.JugglerBooking))) == 1
+    
 def describe_JugglerTaskStart():
     p = juggler.JugglerTaskStart()
     d = datetime.datetime.now()

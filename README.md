@@ -84,9 +84,25 @@ $ gem install taskjuggler
 
 # Usage
 
-## Simplest use case:
+Basic usage concepts include:
 
+1. A `Task`, referred to as `issue` throughout the code
+    1. Task's `id` which is used to identify and map the tasks - a property of `JugglerTask` instance
+    2. Task's `effort` measured in units set as `UNIT` class attribute of `JugglerTaskEffort`
+    3. Task's dependencies
+    4. Task's `start` date (a.k.a. fixed appointment)
+    5. Task's `priority` measured as interger `0-1000` to set scheduling preference. No priority is scheduled always first.
+2. Bookings - the taskjuggler execution result written as `JugglerTask`'s property object(s)
 
+The minimal invocation will look like:
+
+```python
+from taskjuggler_python import JsonJuggler
+jg = GenericJuggler()
+t = juggler.JugglerTask()
+jg.add_task(t)
+jg.run()
+```
 
 ## JSON tasks loading:
 
@@ -168,12 +184,12 @@ See code for more examples of how to use the interfaces.
 
 # TODO
 
+- **documentation!!**
+
 ## TaskJuggler support
 
-- priority
-- appointments 
-    - date+time - `period`
-    - date only (as in "do at deadline")
+- general error reporting support (capture stderr and decode id's)
+- emit warnings if e.g. unable to start appointed event due to slipped schedule
 - working hours, shifts
 - exporting of tjp file; generating reports, gantt charts, etc.
 - *deadline (date) - is a check that the task is not scheduled after this date [not in planner - this is a check and can not be enforced]*
@@ -204,3 +220,7 @@ See code for more examples of how to use the interfaces.
     - export to MiniZinc / FlatZinc for generic CP solvers
     - GPU-accelerated CP solvers?
     - QCL (Quantum Computation Language) export
+
+## Thoughts
+
+- Use logging to predict average performance per day

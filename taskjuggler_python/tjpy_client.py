@@ -75,6 +75,7 @@ def main():
     
     JUGGLER = DictJuggler(data)
     JUGGLER.run()
+    return
     
     for t in JUGGLER.walk(juggler.JugglerTask):
         airtable.update_by_field("id", t.get_id(), {"booking": t.walk(juggler.JugglerBooking)[0].decode()[0].isoformat()})

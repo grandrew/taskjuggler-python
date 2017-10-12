@@ -76,6 +76,7 @@ class JugglerTaskProperty(object):
     SUFFIX = ''
     TEMPLATE = TAB + '{prop} {value}\n'
     VALUE_TEMPLATE = '{prefix}{value}{suffix}'
+    LOG_STRING = "Default TaskProperty"
 
 
     def __init__(self, issue=None):
@@ -86,6 +87,7 @@ class JugglerTaskProperty(object):
             issue (class): The generic issue to load from
             value (object): Value of the property
         '''
+        logging.info('Create %s', self.LOG_STRING)
         self.name = self.DEFAULT_NAME
         self.set_value(self.DEFAULT_VALUE)
         self.empty = False
@@ -119,6 +121,9 @@ class JugglerTaskProperty(object):
         
     def get_id(self):
         return ""
+        
+    def get_hash(self):
+        return self.get_name() + repr(self.get_value())
 
     def set_value(self, value):
         '''
@@ -180,7 +185,7 @@ class JugglerTaskAllocate(JugglerTaskProperty):
     '''Class for the allocate (assignee) of a juggler task'''
 
     DEFAULT_NAME = 'allocate'
-    DEFAULT_VALUE = 'not assigned'
+    DEFAULT_VALUE = 'not initialized'
 
     def load_from_issue(self, issue = None):
         '''
@@ -195,10 +200,15 @@ class JugglerTaskAllocate(JugglerTaskProperty):
 
 class JugglerTaskPriority(JugglerTaskProperty):
     '''Class for task priority'''
+    LOG_STRING = "JugglerTaskPriority"
     DEFAULT_NAME = "priority"
     DEFAULT_VALUE = 1000
+    
+    def get_hash(self):
+        return self.get_name()
 
 class JugglerTaskStart(JugglerTaskProperty):
+    LOG_STRING = "JugglerTaskStart"
     DEFAULT_NAME = "start"
     DEFAULT_VALUE = ""
     
@@ -216,17 +226,19 @@ class JugglerTaskStart(JugglerTaskProperty):
         if not self.value:
             return ""
         return to_tj3time(self.value)
+        
+    def get_hash(self):
+        return self.get_name()
 
 class JugglerTaskEffort(JugglerTaskProperty):
     '''Class for the effort (estimate) of a juggler task'''
 
     #For converting the seconds (generic) to days
     UNIT = 'd'
-    FACTOR = 8.0 * 60 * 60
 
     DEFAULT_NAME = 'effort'
-    MINIMAL_VALUE = 1.0 / 8
-    DEFAULT_VALUE = MINIMAL_VALUE
+    MINIMAL_VALUE = 1 # TODO: should be project resolution, add check
+    DEFAULT_VALUE = -1 
     SUFFIX = UNIT
 
     def load_default_properties(self, issue = None):
@@ -240,11 +252,6 @@ class JugglerTaskEffort(JugglerTaskProperty):
             issue (class): The generic issue to load from
         '''
         self.set_value(self.DEFAULT_VALUE)
-        if hasattr(issue.fields, 'aggregatetimeoriginalestimate') and issue.fields.aggregatetimeoriginalestimate:
-            val = issue.fields.aggregatetimeoriginalestimate
-            self.set_value(val / self.FACTOR)
-        else:
-            logging.warning('No estimate found for %s, assuming %s%s', issue.key, self.DEFAULT_VALUE, self.UNIT)
     def set_value(self, value):
         '''
         Set the value for effort. Will convert whatever number to integer.
@@ -252,6 +259,8 @@ class JugglerTaskEffort(JugglerTaskProperty):
         Default class unit is 'days'. Can be overrided by setting "UNIT" global class attribute
         '''
         self.value = int(value)
+    def get_hash(self):
+        return self.get_name()
     def validate(self, task, tasks):
         '''
         Validate (and correct) the current task property
@@ -384,10 +393,20 @@ class JugglerCompoundKeyword(object):
         
     def get_id(self):
         return self.id
+    
+    def get_hash(self):
+        """Used to generate unique hash. 
+        
+        If set_property should replace this (only single property of this type is supported) - 
+            - the hash should only return the keyword
+        
+        By default, multiple compound properties are allowed.
+        """
+        return self.get_name() + repr(self.get_id())
 
     def set_property(self, prop):
         if prop: 
-            self.properties[prop.get_name() + repr(prop.get_id())] = prop
+            self.properties[prop.get_hash()] = prop
             prop.parent = self # TODO: control un-set?, GC?
     
     def set_id(self, id):
@@ -419,6 +438,7 @@ class JugglerCompoundKeyword(object):
         return out
 
 class JugglerSimpleProperty(JugglerCompoundKeyword):
+    """By default only one simple property is allowed."""
     LOG_STRING = "Default Simple Property"
     DEFAULT_NAME = 'unknown_property'
     DEFAULT_VALUE = ''
@@ -432,6 +452,9 @@ class JugglerSimpleProperty(JugglerCompoundKeyword):
         
     def get_name(self):
         return self.keyword
+    
+    def get_hash(self):
+        return self.get_name()
     
     def decode(self):
         return self.id
@@ -471,20 +494,23 @@ class JugglerTask(JugglerCompoundKeyword):
     DEFAULT_ID = "unknown_task"
     DEFAULT_SUMMARY = 'Task is not initialized'
     
-    # def load_default_properties(self, issue):
-    #     self.set_property(JugglerTaskAllocate(issue))
-    #     self.set_property(JugglerTaskEffort(issue))
-    #     self.set_property(JugglerTaskDepends(issue))
+    def load_default_properties(self, issue = None):
+        if not issue:
+            self.set_property(JugglerTaskAllocate("me"))
+            # self.set_property(JugglerTaskEffort(1))
+        else:
+            self.set_property(JugglerTaskAllocate(issue))
+            self.set_property(JugglerTaskEffort(issue))
+            self.set_property(JugglerTaskDepends(issue))
         
-    # def load_from_issue(self, issue):
-    #     '''
-    #     Load the object with data from a generic issue
+    def load_from_issue(self, issue):
+        '''
+        Load the object with data from a generic issue
 
-    #     Args:
-    #         issue (?): The generic issue to load from
-    #     '''
-    #     self.id = hash(issue)
-    #     self.load_default_properties(issue)
+        Args:
+            issue (?): The generic issue to load from
+        '''
+        self.load_default_properties(issue)
     
     def validate(self, tasks):
         '''
@@ -627,6 +653,17 @@ class GenericJuggler(object):
     
     def load_issues(self):
         raise NotImplementedError
+        
+    def add_task(self, task):
+        '''
+        Add task to current project
+        
+        Args:
+            task (JugglerTask): a task to add
+        '''
+        if not self.src:
+            self.juggle()
+        self.src.set_property(task)
 
     def load_issues_incremetal(self):
         if self.loaded: return []
@@ -681,8 +718,8 @@ class GenericJuggler(object):
         """
         issues = self.load_issues_from_generic()
         if not issues:
-            return None
-        # TODO HERE set reportfolder from parameters
+            # return None
+            issues = []
         self.src = self.create_jugglersource_instance()
         for issue in issues:
             self.src.set_property(issue)

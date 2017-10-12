@@ -23,7 +23,7 @@ class DictJugglerTaskPriority(JugglerTaskPriority):
 class DictJugglerTaskStart(JugglerTaskStart):
     def load_from_issue(self, issue):
         if "start" in issue: 
-            if isinstance(issue["start"], str):
+            if isinstance(issue["start"], str) or isinstance(issue['start'], unicode):
                 self.set_value(dateutil.parser.parse(issue["start"]))
             else:
                 self.set_value(issue["start"])
