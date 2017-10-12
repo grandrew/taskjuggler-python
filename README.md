@@ -2,16 +2,17 @@ Unix: [![Unix Build Status](https://img.shields.io/travis/grandrew/taskjuggler-p
 
 # Rationale
 
-It's [whatever current year] and still most of the tasks/project management tools lack support for any means of automated planning. This library helps to integrate automated planner that's been available for over a decade, with a shot of suporting different back-ends.
+It's **[whatever current year]** and still most of the tasks/project management tools lack support for any means of automated planning. This library helps to integrate automated planner that's been available for over a decade, with a shot of suporting different front-ends, complex scheduling strategies and potentially different planners.
 
-Life is dynamic and ever-changing. While there is no need to strictly follow the plans, a dynamically recalculating schedule will definitely help to keep up with the pace :-)
+Realize your craziest time management dreams!
 
 - Current focus is on personal planning and small teams (hence no support for multiple resource yet)
-- Zero-configuration is required to start
+- No configuration is required to start
+- Utility airtable API example provided with advanced planning strategy (see below)
 
 # Overview
 
-`python_taskjuggler` module provides python interfaces to TaskJuggler 3 planner. It is a set of base classes that provide the objects that TaskJuggler internally uses. The module comes with example implementation of JSON project description parser.
+`python_taskjuggler` module provides python interfaces to TaskJuggler 3 planner. It is a set of base classes that provide object abstractions that TaskJuggler internally uses. The module comes with example implementation of JSON project description parser.
 
 It is still work in progress and currently supports:
 
@@ -36,22 +37,33 @@ $ tjp-client -a airtable -k <airtable_api_key> -b <airtable_database> -t <table_
 
 ### Preparation
 
-1. Create an [airtable](https://airtable.com) table with the following fields (case sensitive): 
+1. Create an [airtable](https://airtable.com) database with table named "Tasks" with the following columns (**case sensitive**): 
 
  ```
-    1. id
-    2. summary
-    3. effort
-    4. priority
-    5. depends
-    6. booking 
+    1. id           - the integer (number) field used as task ID. "Auto Number" type recommended.
+    2. summary      - single line text: task summary / title
+    3. effort       - integer number: task effort duration measured in hours. Default value of 1 recommended
+    4. priority     - multiple select: field with values "CRITICAL", "High", "Low", "info"
+    5. preference   - integer number: optional additional number 0-99 for higher granularity of priorities
+    6. depends      - single line text: with dependencies listed as id's, like: 2,3,4
+    7. appointment  - date field with time: the fixed tasks or appointments that can not be moved
+    8. deadline     - the desired deadline value. Current strategy will use it to emphasize priority if missed.
+    9. booking      - this is where output will be written to. Sort your table by this column
+    
+You can add other nice calculations to the table like time difference between deadline and calculated booking.
 ```
-2. Get `API key`, `database ID`, note your `table name` and `view name`
-3. Execute in terminal:
+2. Create a view called `Work` with all the tasks with status "Done" filtered out *(it is left as an exercize for the reader to create a new column and a filter for it)*
+3. Create a calendar view with `booking` field
+4. Add some tasks and appointments. Beware not to add impossible scenarios - those are not supported yet (see console output to check)
+5. Get `API key`, `database ID`, note your table name and view name should be `Tasks` and `Work` respectively
+6. Execute in terminal:
 
 ```sh
 $ tjp-client -a airtable -k keyAnIuVcuhhkeAkc -b appA8ZtLosVV7HGXy -t Tasks -v Work
 ```
+7. Enjoy the show of `taskjuggler_python` moving your tasks around!
+
+Now try changing priorities, adding appointments and re-scheduling the plan.
 
 # Setup
 
@@ -180,6 +192,27 @@ for t in JUGGLER.walk(juggler.JugglerTask):
 
 After executing this code you should have time assigned to all of your tasks, none of them overlapping,
 respecting dependencies, taking into account default time shifts, appointments and no overwork allowed.
+
+## Advanced booking strategies example
+
+Imagine that you want your older tasks to increase their percieved priority so that every task with 
+any priority level gets a chance to be scheduled in the foreseeable future:
+
+```python
+# recalculate JSON issue priorities based on deadlines
+
+for rec in json_issues:
+    if "priority" in rec and "deadline" in rec and not rec["priority"] >= 300:
+            
+            diff_days = (datetime.datetime.now() - dateutil.parser.parse(rec["deadline"])).days
+            
+            if diff_days < 0: diff_days = 0                 # deny lowering priority
+            rec["priority"] += diff_days * 3                # after 30 days priority is up by 90
+            if rec["priority"] >= 250:                      # limit maximum percieved priority
+                rec["priority"] = 250                       #    > 300 is critical in our strategy
+```
+
+You can find the fully working example [here](https://github.com/grandrew/taskjuggler-python/blob/master/taskjuggler_python/tjpy_client.py).
 
 ## Writing your own interface
 
