@@ -143,16 +143,21 @@ docs/*.png: $(MODULES)
 .PHONY: mkdocs
 mkdocs: install $(MKDOCS_INDEX)
 $(MKDOCS_INDEX): mkdocs.yml docs/*.md
-	ln -sf `realpath README.md --relative-to=docs` docs/index.md
-	ln -sf `realpath CHANGELOG.md --relative-to=docs/about` docs/about/changelog.md
-	ln -sf `realpath CONTRIBUTING.md --relative-to=docs/about` docs/about/contributing.md
-	ln -sf `realpath LICENSE.md --relative-to=docs/about` docs/about/license.md
+	# ln -sf `realpath README.md --relative-to=docs` docs/index.md
+	# ln -sf `realpath CHANGELOG.md --relative-to=docs/about` docs/about/changelog.md
+	# ln -sf `realpath CONTRIBUTING.md --relative-to=docs/about` docs/about/contributing.md
+	# ln -sf `realpath LICENSE.md --relative-to=docs/about` docs/about/license.md
+	ln -sf `python -c "import os.path; print os.path.relpath('README.md', 'docs')"` docs/index.md
+	ln -sf `python -c "import os.path; print os.path.relpath('CHANGELOG.md', 'docs/about')"` docs/about/changelog.md
+	ln -sf `python -c "import os.path; print os.path.relpath('CONTRIBUTING.md', 'docs/about')"` docs/about/contributing.md
+	ln -sf `python -c "import os.path; print os.path.relpath('LICENSE.md', 'docs/about')"` docs/about/license.md
+	
 	$(MKDOCS) build --clean --strict
 
 .PHONY: mkdocs-live
 mkdocs-live: mkdocs
 	eval "sleep 3; bin/open http://127.0.0.1:8000" &
-	$(MKDOCS) serve
+	$(MKDOCS) serve --dev-addr=0.0.0.0:8080
 
 # BUILD ########################################################################
 
