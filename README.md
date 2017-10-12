@@ -56,7 +56,7 @@ You can add other nice calculations to the table like time difference between de
 3. Create a calendar view with `booking` field
 4. Add some tasks and appointments. Beware not to add impossible scenarios - those are not supported yet (see console output to check)
 5. Get `API key`, `database ID`, note your table name and view name should be `Tasks` and `Work` respectively
-6. Execute in terminal:
+6. Execute in terminal (change base name and key respectively):
 
 ```sh
 $ tjp-client -a airtable -k keyAnIuVcuhhkeAkc -b appA8ZtLosVV7HGXy -t Tasks -v Work
