@@ -498,6 +498,28 @@ class JugglerResource(JugglerCompoundKeyword):
     DEFAULT_ID = "me"
     DEFAULT_SUMMARY = "Default Resource"
 
+class JugglerWorkingHours(JugglerCompoundKeyword):
+    DEFAULT_KEYWORD = "workinghours"
+    DEFAULT_ID = "mon"
+    DEFAULT_SUMMARY = ""
+    
+    def set_id(self, id):
+        if not id in ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]: raise ValueError('id for workinghours must be one of: "mon", "tue", "wed", "thu", "fri", "sat", "sun"')
+        self.id = id
+    
+    def set_weekday(self, d = "mon"):
+        """
+        Set week day for workinghours
+        "mon", "tue", "wed", "thu", "fri", "sat", "sun"
+        """
+        self.set_id(d)
+    
+    def load_default_properties(self, issue = None):
+        self.set_hour_interval()
+        
+    def set_hour_interval(self, start = 9, end = 19):
+        self.option2 = "%s:00 - %s:00" % (start, end)
+
 class JugglerTask(JugglerCompoundKeyword):
 
     '''Class for a task for Task-Juggler'''
