@@ -261,9 +261,13 @@ class JugglerTaskEffort(JugglerTaskProperty):
         
         Default class unit is 'days'. Can be overrided by setting "UNIT" global class attribute
         '''
-        self.value = int(value)
+        self.value = int(value) # TODO: support for FP?
     def get_hash(self):
         return self.get_name()
+    
+    def decode(self):
+        return self.value # only hours supported yet
+    
     def validate(self, task, tasks):
         '''
         Validate (and correct) the current task property
