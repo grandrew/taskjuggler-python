@@ -26,8 +26,8 @@ project default "Default Project" 2017-10-10-00:00:00 - 2035-10-10-00:00:00  {
 timezone "UTC"
 outputdir "REPORT"
 }
-resource me "Default Resource"
 icalreport "calendar"
+resource me "me"
 task tjp_numid_2 "Task is not initialized" {
     depends !tjp_numid_1
     effort 2h

@@ -35,8 +35,10 @@ class DictJugglerTaskEffort(JugglerTaskEffort):
 
 class DictJugglerTaskAllocate(JugglerTaskAllocate):
     def load_from_issue(self, issue):
-        if "allocate" in issue: self.set_value(issue["allocate"])
-        else: self.set_value("me") # stub!
+        if "allocate" in issue: alloc = issue["allocate"]
+        else: alloc = "me" # stub!
+        self.set_value(alloc) 
+        src.walk(JugglerSource)[0].set_property(DictJugglerResource(issue))
 
 class DictJugglerTask(JugglerTask):
     def load_default_properties(self, issue):
@@ -57,12 +59,27 @@ class DictJuggler(GenericJuggler):
         return self.issues
     def create_task_instance(self, issue):
         return DictJugglerTask(issue)
+    def create_jugglersource_instance(self):
+        global src
+        src = DictJugglerSource()
+        return src
+
+class DictJugglerSource(JugglerSource):
+    def load_default_properties(self, issue = None):
+        self.set_property(JugglerProject())
+        # self.set_property(DictJugglerResource()) # define no resource
+        self.set_property(JugglerIcalreport())
+        
+class DictJugglerResource(JugglerResource):
+    def load_from_issue(self, issue):
+        if "allocate" in issue:
+            self.set_id(issue["allocate"])
+            self.set_value(issue["allocate"])
 
 class JsonJuggler(DictJuggler):
     def __init__(self, json_issues):
         self.issues = json.loads(json_issues)
     def toJSON(self):
-        # TODO HERE: decode tasks back to JSON
         for t in self.walk(JugglerTask):
             for i in self.issues:
                 if t.get_id() == i["id"]:

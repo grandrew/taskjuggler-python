@@ -94,6 +94,7 @@ class JugglerTaskProperty(object):
         self.set_value(self.DEFAULT_VALUE)
         self.empty = False
         self.parent = None
+        self.top = None
         self.load_default_properties(issue)
 
         if issue:
@@ -372,16 +373,21 @@ class JugglerCompoundKeyword(object):
         logging.debug('Create %s', self.LOG_STRING)
         self.empty = False
         self.parent = None
+        self.top = None
         self.keyword = self.DEFAULT_KEYWORD
         self.id = self.DEFAULT_ID
         self.summary = self.DEFAULT_SUMMARY
         self.option2 = ""
         self.properties = OrderedDict()
         self.load_default_properties(issue)
+        self._post_init(issue)
 
         if issue:
             if self.load_from_issue(issue) is False:
                 self.empty = True
+                
+    def _post_init(self, issue):
+        pass
     
     def load_from_issue(self, issue):
         '''
@@ -415,6 +421,7 @@ class JugglerCompoundKeyword(object):
         if prop: 
             self.properties[prop.get_hash()] = prop
             prop.parent = self # TODO: control un-set?, GC?
+            prop.top = self.top
     
     def set_id(self, id):
         self.id = id
@@ -423,7 +430,10 @@ class JugglerCompoundKeyword(object):
         return self.option2
     
     def walk(self, cls, ls = None):
-        if ls is None: ls = []
+        if ls is None: 
+            ls = []
+            if isinstance(self, cls):
+                ls.append(self)
         for key, item in self.properties.items():
             if isinstance(item, JugglerCompoundKeyword):
                 ls = item.walk(cls, ls)
@@ -501,6 +511,9 @@ class JugglerResource(JugglerCompoundKeyword):
     DEFAULT_KEYWORD = "resource"
     DEFAULT_ID = "me"
     DEFAULT_SUMMARY = "Default Resource"
+    
+    def set_value(self, value):
+        self.summary = value
 
 class JugglerWorkingHours(JugglerCompoundKeyword):
     DEFAULT_KEYWORD = "workinghours"
@@ -650,6 +663,9 @@ class JugglerSource(JugglerCompoundKeyword):
         self.set_property(JugglerProject())
         self.set_property(JugglerResource())
         self.set_property(JugglerIcalreport())
+    
+    def _post_init(self, issue = None):
+        self.top = self
         
 class GenericJuggler(object):
 
@@ -755,11 +771,11 @@ class GenericJuggler(object):
         """
         Export the loaded issues onto the JuggleSource structure
         """
+        self.src = self.create_jugglersource_instance()
         issues = self.load_issues_from_generic()
         if not issues:
             # return None
             issues = []
-        self.src = self.create_jugglersource_instance()
         for issue in issues:
             self.src.set_property(issue)
         return self.src
